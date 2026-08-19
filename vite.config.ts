@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
-import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from "vite";
+import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 // =============================================================================
@@ -152,10 +152,7 @@ function vitePluginManusDebugCollector(): Plugin {
 
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
-export default defineConfig(({ mode }) => {
-  const buildEnv = loadEnv(mode, process.cwd(), "");
-
-  return {
+export default defineConfig({
   plugins,
   resolve: {
     alias: {
@@ -165,7 +162,7 @@ export default defineConfig(({ mode }) => {
     },
   },
   envDir: path.resolve(import.meta.dirname),
-  base: buildEnv.VITE_BASE_PATH || "/",
+  base: process.env.GITHUB_ACTIONS === "true" ? "/phatthalung-survival/" : process.env.VITE_BASE_PATH || "/",
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
@@ -188,5 +185,4 @@ export default defineConfig(({ mode }) => {
       deny: ["**/.*"],
     },
   },
-  };
 });
