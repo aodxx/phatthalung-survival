@@ -6,12 +6,12 @@ type MutationOptions<T> = {
   audit?: (event: AuditEvent) => Promise<void>;
 };
 
+export type TransactionBoundary = <T>(work: () => Promise<T>) => Promise<T>;
+
 /**
- * The success audit is deliberately written only after the business mutation
- * resolves. Public Intake uses the PostgreSQL RPC instead, where mutation and
- * audit are one real database transaction. Callers requiring cross-table
- * atomicity must use a transactional database boundary rather than this REST
- * helper.
+ * External-side-effect helper. The mutation is completed before its success
+ * audit, but callers cannot claim database atomicity through this function.
+ * Use runTransactionalAuditedMutation for database work.
  */
 export async function runAuditedMutation<T>({
   event,
@@ -21,4 +21,22 @@ export async function runAuditedMutation<T>({
   const result = await mutation();
   await audit(event);
   return result;
+}
+
+/**
+ * Database-only mutation boundary. The caller supplies a real transaction
+ * callback (for example a PostgreSQL RPC or a database transaction client),
+ * so a mutation and its success audit commit or roll back together.
+ */
+export async function runTransactionalAuditedMutation<T>({
+  event,
+  mutation,
+  audit = recordAuditEvent,
+  transaction,
+}: MutationOptions<T> & { transaction: TransactionBoundary }): Promise<T> {
+  return transaction(async () => {
+    const result = await mutation();
+    await audit(event);
+    return result;
+  });
 }

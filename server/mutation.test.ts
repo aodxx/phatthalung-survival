@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { runAuditedMutation } from "./mutation";
+import {
+  runAuditedMutation,
+  runTransactionalAuditedMutation,
+} from "./mutation";
 
 const event = {
   actorUserId: "staff-1",
@@ -11,6 +14,62 @@ const event = {
 };
 
 describe("audited mutation wrapper", () => {
+  it("commits mutation and success audit through the supplied transaction boundary", async () => {
+    const order: string[] = [];
+    const result = await runTransactionalAuditedMutation({
+      event,
+      transaction: async work => {
+        order.push("transaction:start");
+        const value = await work();
+        order.push("transaction:commit");
+        return value;
+      },
+      mutation: async () => {
+        order.push("mutation");
+        return "committed";
+      },
+      audit: async () => {
+        order.push("audit");
+      },
+    });
+    expect(result).toBe("committed");
+    expect(order).toEqual([
+      "transaction:start",
+      "mutation",
+      "audit",
+      "transaction:commit",
+    ]);
+  });
+
+  it("rolls back the supplied transaction before any success audit can remain", async () => {
+    const order: string[] = [];
+    await expect(
+      runTransactionalAuditedMutation({
+        event,
+        transaction: async work => {
+          order.push("transaction:start");
+          try {
+            return await work();
+          } catch (error) {
+            order.push("transaction:rollback");
+            throw error;
+          }
+        },
+        mutation: async () => {
+          order.push("mutation");
+          throw new Error("business failed");
+        },
+        audit: async () => {
+          order.push("audit");
+        },
+      })
+    ).rejects.toThrow("business failed");
+    expect(order).toEqual([
+      "transaction:start",
+      "mutation",
+      "transaction:rollback",
+    ]);
+  });
   it("audits only after the business mutation succeeds", async () => {
     const order: string[] = [];
     const result = await runAuditedMutation({

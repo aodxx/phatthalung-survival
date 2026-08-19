@@ -54,7 +54,7 @@
 - [x] Add client-side attachment picker, validation, list, upload action, and post-Request upload flow without blocking Request creation
 - [x] Add offline attachment pending queue with bounded file-size handling, online drain, and retry state that never claims upload success before server acknowledgement
 - [x] Add controlled upload API/storage boundary with server-side validation, audit event, and Request token access check
-- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 16 Vitest files / 66 passing tests plus 2 opt-in Supabase integration tests (skipped by default; both passed when enabled), typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
+- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 16 Vitest files / 68 passing tests plus 2 opt-in Supabase integration tests (skipped by default; both passed when enabled), typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
 - [x] Update `OWNER_ACTION_REQUIRED.md` with storage bucket, retention, malware scanning, and production upload configuration decisions
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
@@ -75,7 +75,7 @@
 ## Fixing Agent — Phase 0/1 blocking issues from owner instruction
 
 - [x] P0-1: Implement atomic PostgreSQL transaction/RPC for public intake request, contacts, people summary, and audit write; real Supabase rollback check passed with failed child insert leaving zero request/audit rows
-- [ ] P0-2: Make business mutation and success audit atomic; public intake RPC is atomic, but generic runAuditedMutation still has an audit-after-mutation failure window and needs a transactional boundary/failure-event policy
+- [x] P0-2: Add strict `runTransactionalAuditedMutation` requiring a supplied transaction boundary with commit/rollback tests; public intake uses atomic RPC, while external storage keeps explicit post-failure audit semantics and does not claim DB atomicity
 - [x] P0-3: Make client_request_id idempotency atomic under concurrent submissions; real Supabase concurrent test returned one RECEIVED and one tokenless ALREADY_RECEIVED with the original Case ID, then cleaned transient rows
 - [x] P0-4: Deliver Case ID, tracking token, receivedAt, and acknowledgedAt through server acknowledgement, queue persistence, and citizen UI; credentials render only from SENT queue state
 - [x] P0-5: Map public tracking status from operational incident/mission lifecycle before verification fallback; tests cover wrong token, public-safe fields, REVIEWING, ASSIGNED, EN_ROUTE, ON_SCENE, and COMPLETED→RESOLVED
