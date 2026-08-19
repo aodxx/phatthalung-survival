@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { Request } from "express";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { AuditEvent } from "./audit";
+import { recordAuditEvent, type AuditEvent } from "./audit";
 import {
   ATTACHMENT_POLICY,
   sanitizeAttachmentFileName,
@@ -297,6 +297,25 @@ export async function uploadPublicAttachment(
           .from("attachments")
           .update({ status: "FAILED", error_code: "UPLOAD_FAILED" })
           .eq("id", attachmentId);
+        try {
+          await (dependencies.audit ?? recordAuditEvent)({
+            actorUserId: null,
+            actorType: "PUBLIC_CITIZEN",
+            action: "ATTACHMENT_UPLOAD_FAILED",
+            entityType: "ATTACHMENT",
+            entityId: attachmentId,
+            occurredAt: new Date(),
+            metadata: {
+              requestId: requestRow.id,
+              caseCode,
+              clientAttachmentId,
+              error: error instanceof Error ? error.message : "unknown",
+            },
+          });
+        } catch {
+          // Preserve the original upload error; audit availability is reported
+          // through the server logs/monitoring boundary rather than masking it.
+        }
         throw error;
       }
     },
