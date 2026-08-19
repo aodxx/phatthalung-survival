@@ -92,7 +92,7 @@
 - [x] Add reporter relation input to the citizen form and include FIRE/ACCIDENT need options; queue/RPC payload includes selected relation and stable code
 - [x] Wire Supabase Auth + user_profiles role_code/zone_id into server context and staff authorization with dev/production adapter documentation in `docs/STAFF_AUTH_PRODUCTION.md`
 - [x] Run real Supabase RLS zone tests against the database, including same/other zone, wrong role, admin, and assigned/unassigned FIELD; exact TEST fixtures cleaned and zero-row/Auth verification passed
-- [ ] Phase 0 exit verification: run install, check, lint, test, build, CI evidence, migrations, RLS, mobile smoke, error/empty states, PWA shell, and deployment preview
+- [ ] Phase 0 exit verification: run install, check, lint, test, build, CI evidence, migrations, RLS, mobile smoke, error/empty states, PWA shell, and deployment preview; remaining full preview matrix and owner sign-off are documented in `docs/PHASE_0_1_FINAL_VERIFICATION.md`
 - [x] Keep Phase 2+ features stopped until this fixing pass and Phase 0/1 critical foundation are verified
 - [x] Add tracking test deriving REVIEWING from incident lifecycle and ASSIGNED from mission lifecycle, not only verification fallback
 - [x] Add incident-status fallback test proving tracking uses incident lifecycle when no mission exists
@@ -109,4 +109,22 @@
 - [x] Produce PHASE 0/1 FINAL VERIFICATION report and make READY FOR PHASE 2 decision strictly from evidence; report decision is CONDITIONAL pending offline/restart and deployment smoke
 - [x] Fix shared IndexedDB version coordination: offline request queue opens `phatthalung-survival` at version 1 while attachment queue opens the same database at version 2, causing browser `VersionError` during attachment verification and interrupting offline/attachment retry behavior.
 - [x] Re-run TEST attachment upload/download verification after IndexedDB fix and record READY evidence.
-- [ ] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report.
+- [x] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report; PWA shell survived offline reload and evidence is recorded.
+
+## GitHub Pages + Supabase Migration Audit
+
+- [x] Create and switch to branch `agent/github-pages-supabase-migration` without modifying `main`; branch creation/switch was verified locally.
+- [x] Audit every `server/` module and classify it as Supabase Edge Function, PostgreSQL RPC/Function, or development-only/removable after migration verification; findings are in `docs/GITHUB_PAGES_SUPABASE_MIGRATION_AUDIT.md`.
+- [x] Audit all client API calls and identify Manus/tRPC dependencies that block GitHub Pages static deployment; findings are in `docs/GITHUB_PAGES_SUPABASE_MIGRATION_AUDIT.md`.
+- [x] Audit Vite base path, SPA routing, PWA manifest/service worker scope, asset paths, CORS, Auth redirects, and frontend secret exposure for `/phatthalung-survival/`.
+- [x] Audit GitHub Actions and deployment readiness for official GitHub Pages artifact/deploy workflow.
+- [x] Write detailed GitHub Pages + Supabase migration audit report with evidence, risks, blockers, owner actions, and acceptance gates.
+- [ ] Inspect PR #1 required checks and GitHub Pages deployment prerequisites before merge.
+- [ ] Change PR #1 from Draft to Ready and merge into `main` only if required checks and deployment prerequisites pass.
+- [ ] Verify GitHub Pages deployment and smoke-test the requested URL; document blockers if Pages is not configured or workflow is missing.
+
+- [ ] Verify owner-configured GitHub Pages Source is now GitHub Actions, run Pages workflow, and smoke-test the published artifact and direct routes.
+- [ ] Decide whether PR #2 can merge: Pages shell deployment may pass, but critical Supabase transport migration must remain an explicit readiness gate.
+
+- [ ] Fix GitHub Pages direct-route fallback: published root, manifest and service worker pass, but `/intake` and `/tracking` return 404 because the Pages artifact lacks `404.html` SPA fallback.
+- [ ] Re-run Pages deployment and verify direct routes return the React shell without changing API readiness claims.
