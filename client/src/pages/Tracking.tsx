@@ -9,6 +9,7 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import AttachmentUploader from "@/components/AttachmentUploader";
 
 export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
@@ -101,19 +102,25 @@ export default function Tracking() {
             </div>
           )}
           {submitted && !lookup.isLoading && !lookup.error && lookup.data && (
-            <div className="mt-6 rounded-2xl border border-cyan-100 bg-cyan-50 p-5">
-              <div className="flex items-center gap-2 text-cyan-900">
-                <ShieldCheck className="size-5" />
-                <span className="font-extrabold">{lookup.data.caseCode}</span>
+            <>
+              <div className="mt-6 rounded-2xl border border-cyan-100 bg-cyan-50 p-5">
+                <div className="flex items-center gap-2 text-cyan-900">
+                  <ShieldCheck className="size-5" />
+                  <span className="font-extrabold">{lookup.data.caseCode}</span>
+                </div>
+                <p className="mt-4 text-sm text-slate-700">
+                  สถานะคำร้อง: <strong>{lookup.data.status}</strong>
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  รับเรื่องเมื่อ{" "}
+                  {new Date(lookup.data.receivedAt).toLocaleString("th-TH")}
+                </p>
               </div>
-              <p className="mt-4 text-sm text-slate-700">
-                สถานะคำร้อง: <strong>{lookup.data.status}</strong>
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                รับเรื่องเมื่อ{" "}
-                {new Date(lookup.data.receivedAt).toLocaleString("th-TH")}
-              </p>
-            </div>
+              <AttachmentUploader
+                caseCode={lookup.data.caseCode}
+                trackingToken={trackingToken}
+              />
+            </>
           )}
           {submitted && !lookup.isLoading && !lookup.error && !lookup.data && (
             <div

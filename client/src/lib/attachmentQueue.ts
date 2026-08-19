@@ -1,0 +1,145 @@
+export type AttachmentQueueStatus =
+  | "PENDING"
+  | "UPLOADING"
+  | "READY"
+  | "FAILED";
+
+export type AttachmentQueueItem = {
+  clientAttachmentId: string;
+  caseCode: string;
+  trackingToken: string;
+  fileName: string;
+  mimeType: string;
+  byteSize: number;
+  blob: Blob;
+  status: AttachmentQueueStatus;
+  attempts: number;
+  nextAttemptAt: number;
+  lastError?: string;
+};
+
+const DB_NAME = "phatthalung-survival";
+const STORE_NAME = "attachmentQueue";
+const VERSION = 2;
+
+function openDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, VERSION);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+        request.result.createObjectStore(STORE_NAME, {
+          keyPath: "clientAttachmentId",
+        });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB unavailable"));
+  });
+}
+
+export function nextAttachmentRetryAt(
+  attempts: number,
+  now = Date.now()
+): number {
+  const boundedAttempts = Math.min(Math.max(attempts, 1), 10);
+  const delay = Math.min(15 * 60 * 1000, 1000 * 2 ** boundedAttempts);
+  return now + delay;
+}
+
+export async function enqueueAttachment(
+  item: Omit<AttachmentQueueItem, "status" | "attempts" | "nextAttemptAt">
+): Promise<AttachmentQueueItem> {
+  const next: AttachmentQueueItem = {
+    ...item,
+    status: "PENDING",
+    attempts: 0,
+    nextAttemptAt: Date.now(),
+  };
+  const db = await openDatabase();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).put(next);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Attachment queue write failed"));
+  });
+  db.close();
+  return next;
+}
+
+export async function listAttachmentQueueItems(): Promise<
+  AttachmentQueueItem[]
+> {
+  const db = await openDatabase();
+  const items = await new Promise<AttachmentQueueItem[]>((resolve, reject) => {
+    const request = db
+      .transaction(STORE_NAME, "readonly")
+      .objectStore(STORE_NAME)
+      .getAll();
+    request.onsuccess = () => resolve(request.result as AttachmentQueueItem[]);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Attachment queue read failed"));
+  });
+  db.close();
+  return items.sort((a, b) => a.nextAttemptAt - b.nextAttemptAt);
+}
+
+export async function updateAttachmentQueueItem(
+  item: AttachmentQueueItem
+): Promise<void> {
+  const db = await openDatabase();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    transaction.objectStore(STORE_NAME).put(item);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error("Attachment queue update failed"));
+  });
+  db.close();
+}
+
+export async function drainAttachmentQueue(
+  upload: (item: AttachmentQueueItem) => Promise<{ acknowledged: boolean }>,
+  now = Date.now()
+): Promise<AttachmentQueueItem[]> {
+  const items = await listAttachmentQueueItems();
+  const results: AttachmentQueueItem[] = [];
+  for (const item of items) {
+    if (
+      (item.status !== "PENDING" && item.status !== "FAILED") ||
+      item.nextAttemptAt > now
+    )
+      continue;
+    const sending = {
+      ...item,
+      status: "UPLOADING" as const,
+      attempts: item.attempts + 1,
+    };
+    await updateAttachmentQueueItem(sending);
+    try {
+      const result = await upload(sending);
+      const next = result.acknowledged
+        ? { ...sending, status: "READY" as const, lastError: undefined }
+        : {
+            ...sending,
+            status: "FAILED" as const,
+            nextAttemptAt: nextAttachmentRetryAt(sending.attempts, now),
+            lastError: "Server did not acknowledge attachment",
+          };
+      await updateAttachmentQueueItem(next);
+      results.push(next);
+    } catch (error) {
+      const next = {
+        ...sending,
+        status: "FAILED" as const,
+        nextAttemptAt: nextAttachmentRetryAt(sending.attempts, now),
+        lastError:
+          error instanceof Error ? error.message : "Attachment upload failed",
+      };
+      await updateAttachmentQueueItem(next);
+      results.push(next);
+    }
+  }
+  return results;
+}

@@ -56,3 +56,7 @@
 **ต้องทำอะไร:** ตรวจชื่อโดเมน, HTTPS, PWA installability และ policy สำหรับข้อมูลสาธารณะ
 
 **หลังทำเสร็จ:** ทดสอบ mobile viewport, offline shell, secure headers, public API ที่ไม่ส่ง PII และ workflow backup/recovery ก่อนเปิดให้ประชาชนใช้
+
+## 6. ยืนยันนโยบาย production สำหรับ attachments
+
+ก่อนเปิดใช้งานจริง เจ้าของระบบต้องยืนยันระยะเวลาเก็บไฟล์ งบประมาณ storage กระบวนการตรวจ malware/antivirus และค่า rate limit สำหรับ public upload ปัจจุบัน implementation ใช้ storage boundary ของแพลตฟอร์ม, controlled server route, allowlist JPG/PNG/WebP/PDF, จำกัดไฟล์ละ 10 MB และกำหนดสูงสุด 3 ไฟล์ใน client policy แต่ยังไม่ถือว่าการสแกน malware หรือ rate limiting production เสร็จสมบูรณ์

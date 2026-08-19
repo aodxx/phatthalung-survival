@@ -1,12 +1,12 @@
-import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
-import { registerStorageProxy } from "./storageProxy";
+import { attachmentHttpError, uploadPublicAttachment } from "../attachments";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { registerOAuthRoutes } from "./oauth";
+import { registerStorageProxy } from "./storageProxy";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -28,15 +28,25 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-async function startServer() {
+export function createApp() {
   const app = express();
-  const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  // tRPC API
+  app.post(
+    "/api/public/attachments",
+    express.raw({ type: () => true, limit: "10mb" }),
+    async (req, res) => {
+      try {
+        const result = await uploadPublicAttachment(req);
+        res.status(200).json(result);
+      } catch (error) {
+        const result = attachmentHttpError(error);
+        res.status(result.status).json({ error: result.message });
+      }
+    }
+  );
   app.use(
     "/api/trpc",
     createExpressMiddleware({
@@ -44,7 +54,12 @@ async function startServer() {
       createContext,
     })
   );
-  // development mode uses Vite, production mode uses static files
+  return app;
+}
+
+async function startServer() {
+  const app = createApp();
+  const server = createServer(app);
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
@@ -63,4 +78,6 @@ async function startServer() {
   });
 }
 
-startServer().catch(console.error);
+if (process.env.NODE_ENV !== "test" && !process.env.VITEST) {
+  startServer().catch(console.error);
+}
