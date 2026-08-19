@@ -59,11 +59,11 @@
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
 - [x] Add HTTP-level tests for `/api/public/attachments` covering missing headers, invalid attachment ID, unsupported MIME, and sanitized service-unavailable response; live Supabase-backed authorization/count branches remain environment-dependent
-- [ ] Add an idempotent re-upload test proving an already-READY `client_attachment_id` returns the existing attachment result without creating or uploading again (requires isolated Supabase fixture or mock boundary; no test data inserted)
+- [x] Add an idempotent re-upload test proving an already-READY `client_attachment_id` returns the existing attachment result without creating or uploading again using an isolated fake Supabase boundary; no test data inserted
 - [x] Add a route-contract test asserting sanitized JSON `{ error: string }` responses for the HTTP-proven 400/503 paths; 404/409/413 mappings are unit-tested and remain pending isolated Supabase route fixtures
 - [x] Prevent Vitest importing `server/_core/index.ts` from starting an extra HTTP listener during route tests; preserve single managed dev server runtime
 - [x] Narrow attachment route test reporting to statuses proven in this environment: HTTP 400/503 plus unit-tested 404/409/413 mappings; no unsafe production/test data was inserted
 - [ ] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
-- [ ] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
+- [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
 - [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow
 - [ ] Capture runtime UI verification for attachment selection, pending/offline, retry, success, and failure states when preview is available

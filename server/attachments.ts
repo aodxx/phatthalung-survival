@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { Request } from "express";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AuditEvent } from "./audit";
 import {
   ATTACHMENT_POLICY,
   sanitizeAttachmentFileName,
@@ -29,6 +31,12 @@ export function attachmentHttpError(error: unknown): {
   return { status: 503, message: "Attachment upload unavailable" };
 }
 
+export type AttachmentUploadDependencies = {
+  supabase?: SupabaseClient;
+  storagePut?: typeof storagePut;
+  audit?: (event: AuditEvent) => Promise<void>;
+};
+
 export type AttachmentUploadResult = {
   status: "READY" | "ALREADY_READY";
   attachmentId: string;
@@ -50,7 +58,8 @@ function headerValue(request: Request, name: string): string {
 }
 
 export async function uploadPublicAttachment(
-  request: Request
+  request: Request,
+  dependencies: AttachmentUploadDependencies = {}
 ): Promise<AttachmentUploadResult> {
   const caseCode = headerValue(request, "x-case-code").toUpperCase();
   const trackingToken = headerValue(request, "x-tracking-token");
@@ -75,7 +84,7 @@ export async function uploadPublicAttachment(
   if (body.byteLength > ATTACHMENT_POLICY.maxBytesPerFile)
     throw new AttachmentClientError("Attachment is too large", 413);
 
-  const supabase = assertSupabaseConfigured();
+  const supabase = dependencies.supabase ?? assertSupabaseConfigured();
   const tokenHash = sha256(trackingToken);
   const { data: requestRow, error: requestError } = await supabase
     .from("requests")
@@ -124,6 +133,7 @@ export async function uploadPublicAttachment(
 
   const attachmentId = existing?.id ?? randomUUID();
   return runAuditedMutation({
+    audit: dependencies.audit,
     event: {
       actorUserId: null,
       actorType: "PUBLIC_CITIZEN",
@@ -161,7 +171,7 @@ export async function uploadPublicAttachment(
         );
 
       try {
-        const stored = await storagePut(
+        const stored = await (dependencies.storagePut ?? storagePut)(
           `requests/${requestRow.id}/attachments/${attachmentId}-${sanitizeAttachmentFileName(fileName)}`,
           body,
           mimeType
