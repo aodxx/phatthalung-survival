@@ -11,7 +11,7 @@ const event = {
 };
 
 describe("audited mutation wrapper", () => {
-  it("audits before running the mutation", async () => {
+  it("audits only after the business mutation succeeds", async () => {
     const order: string[] = [];
     const result = await runAuditedMutation({
       event,
@@ -25,11 +25,25 @@ describe("audited mutation wrapper", () => {
     });
 
     expect(result).toBe("ok");
-    expect(order).toEqual(["audit", "mutation"]);
+    expect(order).toEqual(["mutation", "audit"]);
   });
 
-  it("does not run the mutation when audit fails", async () => {
-    const mutation = vi.fn(async () => "should-not-run");
+  it("does not run the success audit when the mutation fails", async () => {
+    const audit = vi.fn(async () => undefined);
+    await expect(
+      runAuditedMutation({
+        event,
+        audit,
+        mutation: async () => {
+          throw new Error("business mutation failed");
+        },
+      })
+    ).rejects.toThrow("business mutation failed");
+    expect(audit).not.toHaveBeenCalled();
+  });
+
+  it("propagates an audit failure after the business mutation result exists", async () => {
+    const mutation = vi.fn(async () => "created");
     await expect(
       runAuditedMutation({
         event,
@@ -39,6 +53,6 @@ describe("audited mutation wrapper", () => {
         mutation,
       })
     ).rejects.toThrow("audit unavailable");
-    expect(mutation).not.toHaveBeenCalled();
+    expect(mutation).toHaveBeenCalledOnce();
   });
 });

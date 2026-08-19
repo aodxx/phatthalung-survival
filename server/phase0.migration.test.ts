@@ -26,6 +26,22 @@ const publicHardening = readFileSync(
   "utf8"
 );
 
+const atomicIntake = readFileSync(
+  resolve(
+    process.cwd(),
+    "supabase/migrations/20260820000004_public_intake_atomic.sql"
+  ),
+  "utf8"
+);
+
+const zoneRls = readFileSync(
+  resolve(
+    process.cwd(),
+    "supabase/migrations/20260820000005_zone_aware_rls.sql"
+  ),
+  "utf8"
+);
+
 describe("Phase 0 migration invariants", () => {
   it("keeps Request, Incident, and Mission as separate entities", () => {
     expect(migration).toContain("create table public.requests");
@@ -42,6 +58,34 @@ describe("Phase 0 migration invariants", () => {
     expect(migration).toContain("entity_type text not null");
     expect(migration).toContain("reason text");
     expect(migration).toContain("metadata jsonb not null");
+  });
+
+  it("defines one atomic public intake boundary with idempotent conflict handling", () => {
+    expect(atomicIntake).toContain(
+      "create or replace function public.submit_public_intake_atomic"
+    );
+    expect(atomicIntake).toContain(
+      "on conflict (client_request_id) do nothing"
+    );
+    expect(atomicIntake).toContain("insert into public.request_contacts");
+    expect(atomicIntake).toContain("insert into public.request_people_summary");
+    expect(atomicIntake).toContain("insert into public.audit_logs");
+    expect(atomicIntake).toContain(
+      "revoke all on function public.submit_public_intake_atomic(jsonb)"
+    );
+    expect(atomicIntake).toContain(
+      "grant execute on function public.submit_public_intake_atomic(jsonb) to service_role"
+    );
+  });
+
+  it("scopes operational reads by active profile zone with global override", () => {
+    expect(zoneRls).toContain(
+      "create or replace function public.current_staff_zone()"
+    );
+    expect(zoneRls).toContain("where id = auth.uid() and active = true");
+    expect(zoneRls).toContain("or zone_id = public.current_staff_zone()");
+    expect(zoneRls).toContain("or exists (");
+    expect(zoneRls).toContain("teams.zone_id = public.current_staff_zone()");
   });
 
   it("enables RLS and keeps public direct access closed", () => {

@@ -2,9 +2,15 @@
 
 เอกสารนี้รวบรวมการตั้งค่าที่ต้องดำเนินการโดยเจ้าของระบบเอง รายการเหล่านี้ไม่ควรหยุดการพัฒนา frontend shell, schema, migrations, tests และเอกสาร แต่ต้องเสร็จก่อนยืนยันว่า Phase 0 เชื่อมต่อ Supabase และ deploy ใช้งานจริงครบตาม Exit Criteria
 
+## Latest fixing-pass verification
+
+พบ Supabase project ชื่อ `phatthalung-survival` ที่ active และใช้ migration path ของ PostgreSQL จริงแล้ว โดย apply atomic public intake RPC และ zone-aware RLS/phone validation สำเร็จ การทดสอบ rollback จริงผ่าน: child contact insert ที่ตั้งใจให้ผิดรูปแบบทำให้ไม่เหลือ request หรือ audit row ใด ๆ ระบบไม่ได้สร้าง persistent test user, zone, request หรือ staff data
+
+ยังต้องให้เจ้าของระบบจัดเตรียม staff identities และ zone assignments ที่ได้รับอนุมัติ เพราะฐานปัจจุบันมี `zones` และ `user_profiles` เป็นศูนย์ จากนั้นจึงทดสอบ same-zone allowed, other-zone denied, inactive/unknown-role denied และ ADMIN/COMMANDER override จริง ห้ามส่ง password, access token, recovery link หรือ service-role key ในแชต
+
 ## 1. เลือกหรือสร้าง Supabase project สำหรับแอป
 
-**ต้องทำอะไร:** เลือก Supabase project ที่จะเป็นฐานข้อมูลจริงของ “แอปพัทลุงต้องรอด” ปัจจุบันยังไม่พบ project ที่ระบุชื่อนี้ และยังไม่ควรนำ project อื่นที่มีอยู่มาใช้โดยไม่ยืนยัน เพราะอาจทำให้ข้อมูลคนละระบบปะปนกัน
+**ต้องทำอะไร:** ยืนยันว่า Supabase project `phatthalung-survival` ที่ active เป็นฐานข้อมูลจริงของ “แอปพัทลุงต้องรอด” และไม่ใช่ project อื่นขององค์กร
 
 **เข้าเว็บไหน:** [Supabase Dashboard](https://supabase.com/dashboard)
 

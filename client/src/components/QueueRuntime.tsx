@@ -7,15 +7,20 @@ export default function QueueRuntime() {
 
   useEffect(() => {
     const flush = async () => {
-      await drainQueue(async item => {
+      const results = await drainQueue(async item => {
         const response = await mutateAsync(item);
         return {
           acknowledged:
             response.status === "RECEIVED" ||
             response.status === "ALREADY_RECEIVED",
           caseCode: response.caseCode,
+          trackingToken: response.trackingToken,
+          receivedAt: response.receivedAt,
         };
       });
+      window.dispatchEvent(
+        new CustomEvent("citizen-queue-updated", { detail: results })
+      );
     };
 
     void flush();

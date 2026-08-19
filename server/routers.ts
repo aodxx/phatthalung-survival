@@ -8,9 +8,14 @@ import {
   staffProcedure,
 } from "./_core/trpc";
 import { isSupabaseConfigured } from "./supabase";
-import { submitPublicIntake } from "./intake";
+import {
+  PUBLIC_NEED_TYPES,
+  REPORTER_RELATIONS,
+  submitPublicIntake,
+} from "./intake";
 import { lookupPublicTracking } from "./tracking";
 import { getPublicAttachmentDownload } from "./attachments";
+import { isValidThaiPhone, normalizeThaiPhone } from "./phone";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -59,11 +64,27 @@ export const appRouter = router({
           createdAt: z.string().datetime(),
           locationMode: z.enum(["gps", "text"]),
           locationText: z.string().trim().min(2).max(500),
-          incidentType: z.string().trim().min(2).max(120),
-          peopleTotal: z.number().int().min(1).max(10000),
+          incidentType: z.string().trim().min(2).max(120).optional(),
+          needType: z.enum(PUBLIC_NEED_TYPES).optional(),
+          peopleTotal: z.number().int().min(0).max(10000).nullable(),
+          peopleTotalApproximate: z.boolean().optional(),
+          vulnerableUnknown: z.boolean().optional(),
           vulnerableNotes: z.string().max(2000),
           contactName: z.string().max(120),
-          phone: z.string().regex(/^0\d{8,9}$/),
+          phone: z
+            .string()
+            .refine(value => isValidThaiPhone(normalizeThaiPhone(value)), {
+              message: "phone is invalid",
+            }),
+          reporterRelation: z.enum(REPORTER_RELATIONS).optional(),
+          latitude: z.number().min(-90).max(90).nullable().optional(),
+          longitude: z.number().min(-180).max(180).nullable().optional(),
+          gpsAccuracyM: z.number().min(0).nullable().optional(),
+          childrenCount: z.number().int().min(0).nullable().optional(),
+          elderlyCount: z.number().int().min(0).nullable().optional(),
+          disabledCount: z.number().int().min(0).nullable().optional(),
+          bedriddenCount: z.number().int().min(0).nullable().optional(),
+          urgentMedicalCount: z.number().int().min(0).nullable().optional(),
         })
       )
       .mutation(({ input }) => submitPublicIntake(input)),

@@ -1,15 +1,36 @@
 export type QueueStatus = "PENDING" | "SENDING" | "SENT" | "FAILED";
+export type PublicNeedType =
+  | "MEDICAL"
+  | "EVACUATION"
+  | "FLOOD_TRAPPED"
+  | "FOOD_WATER"
+  | "MEDICINE"
+  | "FIRE"
+  | "ACCIDENT"
+  | "OTHER";
 
 export type CitizenRequestPayload = {
   clientRequestId: string;
   createdAt: string;
   locationMode: "gps" | "text";
   locationText: string;
-  incidentType: string;
-  peopleTotal: number;
+  incidentType?: string;
+  needType?: PublicNeedType;
+  peopleTotal: number | null;
+  peopleTotalApproximate?: boolean;
+  vulnerableUnknown?: boolean;
   vulnerableNotes: string;
   contactName: string;
   phone: string;
+  reporterRelation?: "SELF" | "FAMILY" | "NEIGHBOR" | "VOLUNTEER" | "OTHER";
+  latitude?: number | null;
+  longitude?: number | null;
+  gpsAccuracyM?: number | null;
+  childrenCount?: number | null;
+  elderlyCount?: number | null;
+  disabledCount?: number | null;
+  bedriddenCount?: number | null;
+  urgentMedicalCount?: number | null;
 };
 
 export type QueueItem = CitizenRequestPayload & {
@@ -17,6 +38,9 @@ export type QueueItem = CitizenRequestPayload & {
   attempts: number;
   nextAttemptAt: number;
   lastError?: string;
+  caseCode?: string;
+  trackingToken?: string;
+  acknowledgedAt?: string;
 };
 
 const DB_NAME = "phatthalung-survival";
@@ -109,9 +133,12 @@ export function nextRetryAt(
 }
 
 export async function drainQueue(
-  send: (
-    item: QueueItem
-  ) => Promise<{ acknowledged: boolean; caseCode?: string }>,
+  send: (item: QueueItem) => Promise<{
+    acknowledged: boolean;
+    caseCode?: string;
+    trackingToken?: string;
+    receivedAt?: string;
+  }>,
   now = Date.now()
 ): Promise<QueueItem[]> {
   const items = await listQueueItems();
@@ -135,6 +162,11 @@ export async function drainQueue(
         lastError: result.acknowledged
           ? undefined
           : "Server did not acknowledge request",
+        caseCode: result.acknowledged ? result.caseCode : undefined,
+        trackingToken: result.acknowledged ? result.trackingToken : undefined,
+        acknowledgedAt: result.acknowledged
+          ? (result.receivedAt ?? new Date(now).toISOString())
+          : undefined,
       };
       await updateQueueItem(completed);
       results.push(completed);

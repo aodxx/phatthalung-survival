@@ -33,7 +33,7 @@ export const roleProcedure = (allowedRoles: readonly StaffRole[]) =>
   t.procedure.use(
     t.middleware(async opts => {
       const { ctx, next } = opts;
-      if (!ctx.user) {
+      if (!ctx.user && !ctx.staffPrincipal) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: UNAUTHED_ERR_MSG,
@@ -42,7 +42,7 @@ export const roleProcedure = (allowedRoles: readonly StaffRole[]) =>
 
       try {
         const staff = assertStaffRole(
-          staffPrincipalFromManusUser(ctx.user),
+          ctx.staffPrincipal ?? staffPrincipalFromManusUser(ctx.user!),
           allowedRoles
         );
         return next({ ctx: { ...ctx, user: ctx.user, staff } });
@@ -74,7 +74,9 @@ export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user || ctx.user.role !== "admin") {
+    const isAdmin =
+      ctx.staffPrincipal?.role === "ADMIN" || ctx.user?.role === "admin";
+    if (!isAdmin) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
 
