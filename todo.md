@@ -16,7 +16,7 @@
 - [x] Add README, ARCHITECTURE.md, SECURITY.md, RUNBOOK.md, TEST_PLAN.md, and OWNER_ACTION_REQUIRED.md
 - [x] Add lint, typecheck, unit-test, build, and CI configuration
 - [x] Add Phase 0 tests for PWA assets, environment validation, role definitions, migration invariants, RLS baseline, and audit requirements
-- [ ] Run lint, tests, build, mobile smoke check, error/empty-state check, and security review; verified: lint, tests, build, typecheck, mobile screenshot, Supabase connectivity, migration, table/RLS inventory, anonymous RLS boundary, audit/staff unit tests; remaining: formal empty/error runtime check, mobile smoke breadth, and deploy verification; GitHub Actions CI run `32294077163` passed install, typecheck, lint, unit tests, and build
+- [ ] Run lint, tests, build, mobile smoke check, error/empty-state check, and security review; verified: lint, tests, build, typecheck, mobile screenshot, Supabase connectivity, migration, table/RLS inventory, anonymous RLS boundary, audit/staff unit tests; remaining: formal empty/error runtime check, mobile smoke breadth, and deploy verification; GitHub Actions CI runs `32294077163` and `32294392690` passed install, typecheck, lint, unit tests, and build
 
 ## Requested product scope recorded for subsequent phases
 
