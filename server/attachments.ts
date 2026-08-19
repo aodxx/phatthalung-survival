@@ -9,7 +9,7 @@ import {
 } from "../shared/attachments";
 import { runAuditedMutation } from "./mutation";
 import { assertSupabaseConfigured } from "./supabase";
-import { storagePut } from "./storage";
+import { storageGetSignedUrl, storagePut } from "./storage";
 
 export class AttachmentClientError extends Error {
   constructor(
@@ -47,6 +47,20 @@ export type AttachmentUploadResult = {
   url?: string;
 };
 
+export type PublicAttachmentMetadata = {
+  attachmentId: string;
+  fileName: string;
+  mimeType: string;
+  byteSize: number;
+  uploadedAt: string | null;
+  downloadUrl: string;
+};
+
+export type AttachmentReadDependencies = {
+  supabase?: SupabaseClient;
+  storageGetSignedUrl?: typeof storageGetSignedUrl;
+};
+
 function sha256(value: Buffer | string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -55,6 +69,91 @@ function headerValue(request: Request, name: string): string {
   const value = request.header(name);
   if (!value?.trim()) throw new AttachmentClientError(`Missing ${name}`);
   return value.trim();
+}
+
+async function findAuthorizedRequest(
+  supabase: SupabaseClient,
+  caseCode: string,
+  trackingToken: string
+) {
+  const { data, error } = await supabase
+    .from("requests")
+    .select("id, case_code")
+    .eq("case_code", caseCode.trim().toUpperCase())
+    .eq("tracking_token_hash", sha256(trackingToken))
+    .maybeSingle();
+  if (error) throw new Error(`Request authorization failed: ${error.message}`);
+  if (!data)
+    throw new AttachmentClientError("Request authorization failed", 404);
+  return data;
+}
+
+export async function listPublicAttachments(
+  input: { caseCode: string; trackingToken: string },
+  dependencies: AttachmentReadDependencies = {}
+): Promise<PublicAttachmentMetadata[]> {
+  const supabase = dependencies.supabase ?? assertSupabaseConfigured();
+  const requestRow = await findAuthorizedRequest(
+    supabase,
+    input.caseCode,
+    input.trackingToken
+  );
+  const { data, error } = await supabase
+    .from("attachments")
+    .select("id, filename, mime_type, byte_size, uploaded_at, status")
+    .eq("request_id", requestRow.id)
+    .eq("status", "READY")
+    .order("uploaded_at", { ascending: false });
+  if (error) throw new Error(`Attachment listing failed: ${error.message}`);
+  return (data ?? []).map(attachment => ({
+    attachmentId: attachment.id,
+    fileName: attachment.filename,
+    mimeType: attachment.mime_type,
+    byteSize: attachment.byte_size,
+    uploadedAt: attachment.uploaded_at,
+    downloadUrl: `/api/public/attachments/${attachment.id}`,
+  }));
+}
+
+export async function getPublicAttachmentDownload(
+  input: {
+    caseCode: string;
+    trackingToken: string;
+    attachmentId: string;
+  },
+  dependencies: AttachmentReadDependencies = {}
+) {
+  if (!/^[0-9a-f-]{36}$/i.test(input.attachmentId)) {
+    throw new AttachmentClientError("Invalid attachment ID", 400);
+  }
+  const supabase = dependencies.supabase ?? assertSupabaseConfigured();
+  const requestRow = await findAuthorizedRequest(
+    supabase,
+    input.caseCode,
+    input.trackingToken
+  );
+  const { data, error } = await supabase
+    .from("attachments")
+    .select(
+      "id, filename, mime_type, byte_size, uploaded_at, status, storage_path"
+    )
+    .eq("id", input.attachmentId)
+    .eq("request_id", requestRow.id)
+    .eq("status", "READY")
+    .maybeSingle();
+  if (error) throw new Error(`Attachment lookup failed: ${error.message}`);
+  if (!data) throw new AttachmentClientError("Attachment not found", 404);
+  const signedUrl = await (
+    dependencies.storageGetSignedUrl ?? storageGetSignedUrl
+  )(data.storage_path);
+  return {
+    attachmentId: data.id,
+    fileName: data.filename,
+    mimeType: data.mime_type,
+    byteSize: data.byte_size,
+    uploadedAt: data.uploaded_at,
+    url: signedUrl,
+  };
 }
 
 export async function uploadPublicAttachment(
@@ -86,16 +185,11 @@ export async function uploadPublicAttachment(
 
   const supabase = dependencies.supabase ?? assertSupabaseConfigured();
   const tokenHash = sha256(trackingToken);
-  const { data: requestRow, error: requestError } = await supabase
-    .from("requests")
-    .select("id, case_code")
-    .eq("case_code", caseCode)
-    .eq("tracking_token_hash", tokenHash)
-    .maybeSingle();
-  if (requestError)
-    throw new Error(`Request authorization failed: ${requestError.message}`);
-  if (!requestRow)
-    throw new AttachmentClientError("Request authorization failed", 404);
+  const requestRow = await findAuthorizedRequest(
+    supabase,
+    caseCode,
+    trackingToken
+  );
 
   const { data: existing, error: existingError } = await supabase
     .from("attachments")

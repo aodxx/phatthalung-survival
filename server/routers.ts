@@ -10,6 +10,7 @@ import {
 import { isSupabaseConfigured } from "./supabase";
 import { submitPublicIntake } from "./intake";
 import { lookupPublicTracking } from "./tracking";
+import { getPublicAttachmentDownload } from "./attachments";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -73,6 +74,18 @@ export const appRouter = router({
         "client-validate → IndexedDB PENDING → controlled API → server acknowledgement" as const,
       publicIntakeRequiresLogin: false as const,
     })),
+  }),
+
+  attachments: router({
+    download: publicProcedure
+      .input(
+        z.object({
+          caseCode: z.string().trim().min(6).max(40),
+          trackingToken: z.string().min(16).max(200),
+          attachmentId: z.string().uuid(),
+        })
+      )
+      .query(({ input }) => getPublicAttachmentDownload(input)),
   }),
 
   tracking: router({

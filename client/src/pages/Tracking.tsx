@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
   ClipboardCheck,
+  Download,
+  FileText,
   Loader2,
   Search,
   ShieldCheck,
@@ -15,6 +17,9 @@ export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
   const [trackingToken, setTrackingToken] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const utils = trpc.useUtils();
   const input = useMemo(
     () => ({ caseCode, trackingToken }),
     [caseCode, trackingToken]
@@ -27,6 +32,29 @@ export default function Tracking() {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitted(true);
+    setDownloadError(null);
+  };
+
+  const downloadAttachment = async (attachmentId: string, fileName: string) => {
+    setDownloadingId(attachmentId);
+    setDownloadError(null);
+    try {
+      const result = await utils.attachments.download.fetch({
+        caseCode,
+        trackingToken,
+        attachmentId,
+      });
+      const link = document.createElement("a");
+      link.href = result.url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.download = fileName;
+      link.click();
+    } catch {
+      setDownloadError("ไม่สามารถเปิดไฟล์ได้ กรุณาลองใหม่เมื่อเครือข่ายพร้อม");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
@@ -116,6 +144,74 @@ export default function Tracking() {
                   {new Date(lookup.data.receivedAt).toLocaleString("th-TH")}
                 </p>
               </div>
+              {lookup.data.attachments.length > 0 && (
+                <section
+                  className="mt-6 rounded-2xl border border-slate-200 bg-white p-5"
+                  aria-labelledby="uploaded-attachments-heading"
+                >
+                  <div className="flex items-start gap-3">
+                    <FileText className="mt-1 size-5 text-cyan-700" />
+                    <div>
+                      <h2
+                        id="uploaded-attachments-heading"
+                        className="font-extrabold text-slate-900"
+                      >
+                        ไฟล์ประกอบคำร้อง
+                      </h2>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        ไฟล์ที่ส่งสำเร็จแล้วเท่านั้นจะแสดงในรายการนี้
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {lookup.data.attachments.map(attachment => (
+                      <div
+                        key={attachment.attachmentId}
+                        className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-slate-800">
+                            {attachment.fileName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {Math.ceil(attachment.byteSize / 1024)} KB ·{" "}
+                            {attachment.mimeType}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={downloadingId === attachment.attachmentId}
+                          onClick={() =>
+                            void downloadAttachment(
+                              attachment.attachmentId,
+                              attachment.fileName
+                            )
+                          }
+                        >
+                          {downloadingId === attachment.attachmentId ? (
+                            <Loader2
+                              className="size-4 animate-spin"
+                              aria-label="กำลังเปิดไฟล์"
+                            />
+                          ) : (
+                            <Download className="size-4" aria-hidden="true" />
+                          )}
+                          <span className="sr-only">
+                            เปิด {attachment.fileName}
+                          </span>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  {downloadError && (
+                    <p className="mt-3 text-sm text-red-700" role="alert">
+                      {downloadError}
+                    </p>
+                  )}
+                </section>
+              )}
               <AttachmentUploader
                 caseCode={lookup.data.caseCode}
                 trackingToken={trackingToken}

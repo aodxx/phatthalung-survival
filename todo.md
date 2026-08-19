@@ -54,16 +54,20 @@
 - [x] Add client-side attachment picker, validation, list, upload action, and post-Request upload flow without blocking Request creation
 - [x] Add offline attachment pending queue with bounded file-size handling, online drain, and retry state that never claims upload success before server acknowledgement
 - [x] Add controlled upload API/storage boundary with server-side validation, audit event, and Request token access check
-- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 14 Vitest files / 46 tests, typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
+- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 14 Vitest files / 52 tests, typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
 - [x] Update `OWNER_ACTION_REQUIRED.md` with storage bucket, retention, malware scanning, and production upload configuration decisions
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
 - [x] Add HTTP-level tests for `/api/public/attachments` covering missing headers, invalid attachment ID, unsupported MIME, and sanitized service-unavailable response; live Supabase-backed authorization/count branches remain environment-dependent
 - [x] Add an idempotent re-upload test proving an already-READY `client_attachment_id` returns the existing attachment result without creating or uploading again using an isolated fake Supabase boundary; no test data inserted
-- [x] Add a route-contract test asserting sanitized JSON `{ error: string }` responses for the HTTP-proven 400/503 paths; 404/409/413 mappings are unit-tested and remain pending isolated Supabase route fixtures
+- [x] Add a route-contract test asserting sanitized JSON `{ error: string }` responses for HTTP-proven 400/404/503 paths; 409/413 mappings are unit-tested
 - [x] Prevent Vitest importing `server/_core/index.ts` from starting an extra HTTP listener during route tests; preserve single managed dev server runtime
-- [x] Narrow attachment route test reporting to statuses proven in this environment: HTTP 400/503 plus unit-tested 404/409/413 mappings; no unsafe production/test data was inserted
+- [x] Narrow attachment route test reporting to statuses proven in this environment: HTTP 400/404/503 plus unit-tested 409/413 mappings; no unsafe production/test data was inserted
 - [ ] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
 - [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
-- [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow
+- [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: tracking metadata/download boundary exists, but valid Case ID/token runtime flow remains pending
 - [ ] Capture runtime UI verification for attachment selection, pending/offline, retry, success, and failure states when preview is available
+- [x] Add a public-safe attachment metadata/download path after tracking lookup; return only READY metadata, never expose storage paths in tracking data, and require Case ID + tracking token for signed URL access
+- [x] Add unit/HTTP contract tests for authorized attachment listing/download and denied access without valid Case ID + token using injected fake Supabase/storage boundaries; no production/test data inserted
+- [ ] Add runtime UI verification for attachment selection, offline pending, retry, success, failure, and public download states using a real acknowledged Request/Case ID + tracking token where owner environment permits
+- [x] Begin Phase 2 staff intake and operations queue design from Blueprint/PRD after citizen attachment access is closed; design boundary recorded in `docs/PHASE2_OPERATIONS_QUEUE_DESIGN.md`
