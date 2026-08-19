@@ -45,7 +45,7 @@ export type QueueItem = CitizenRequestPayload & {
 
 const DB_NAME = "phatthalung-survival";
 const STORE_NAME = "citizen-request-queue";
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 
 function openQueueDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -62,6 +62,11 @@ function openQueueDb(): Promise<IDBDatabase> {
         });
         store.createIndex("status", "status", { unique: false });
         store.createIndex("nextAttemptAt", "nextAttemptAt", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("attachmentQueue")) {
+        db.createObjectStore("attachmentQueue", {
+          keyPath: "clientAttachmentId",
+        });
       }
     };
     request.onsuccess = () => resolve(request.result);

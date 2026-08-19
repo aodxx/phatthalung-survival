@@ -5,6 +5,7 @@ import {
   enqueueAttachment,
   listAttachmentQueueItems,
 } from "./attachmentQueue";
+import { enqueueCitizenRequest, listQueueItems } from "./offlineQueue";
 
 const item = {
   clientAttachmentId: "11111111-1111-4111-8111-111111111111",
@@ -22,6 +23,38 @@ describe("offline attachment queue", () => {
       const request = indexedDB.deleteDatabase("phatthalung-survival");
       request.onsuccess = request.onerror = request.onblocked = () => resolve();
     });
+  });
+
+  it("coordinates the shared schema when attachment opens before request queue", async () => {
+    await enqueueAttachment(item);
+    await enqueueCitizenRequest({
+      clientRequestId: "request-shared-db-1",
+      createdAt: "2026-08-20T00:00:00.000Z",
+      locationMode: "text",
+      locationText: "TEST only",
+      peopleTotal: 1,
+      vulnerableNotes: "",
+      contactName: "TEST",
+      phone: "0812345678",
+    });
+    expect((await listAttachmentQueueItems()).length).toBe(1);
+    expect((await listQueueItems()).length).toBe(1);
+  });
+
+  it("coordinates the shared schema when request queue opens before attachment", async () => {
+    await enqueueCitizenRequest({
+      clientRequestId: "request-shared-db-2",
+      createdAt: "2026-08-20T00:00:00.000Z",
+      locationMode: "text",
+      locationText: "TEST only",
+      peopleTotal: 1,
+      vulnerableNotes: "",
+      contactName: "TEST",
+      phone: "0812345678",
+    });
+    await enqueueAttachment(item);
+    expect((await listQueueItems()).length).toBe(1);
+    expect((await listAttachmentQueueItems()).length).toBe(1);
   });
 
   it("persists a Blob before upload acknowledgement", async () => {
