@@ -1,14 +1,1 @@
-{
-  "name": "แอปพัทลุงต้องรอด",
-  "short_name": "พัทลุงต้องรอด",
-  "description": "ระบบรับแจ้งและปฏิบัติการเหตุฉุกเฉินระดับชุมชน",
-  "lang": "th",
-  "dir": "ltr",
-  "start_url": "/",
-  "scope": "/",
-  "display": "standalone",
-  "background_color": "#f7f9fc",
-  "theme_color": "#0b3b5a",
-  "categories": ["emergency", "safety", "government"],
-  "icons": []
-}
+{"name":"แอปพัทลุงต้องรอด","short_name":"พัทลุงต้องรอด","description":"ระบบรับแจ้งและปฏิบัติการเหตุฉุกเฉินระดับชุมชน","lang":"th","dir":"ltr","start_url":"./","scope":"./","display":"standalone","background_color":"#f7f9fc","theme_color":"#0b3b5a","categories":["emergency","safety","government"],"icons":[]}
