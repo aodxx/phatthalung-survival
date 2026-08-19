@@ -83,9 +83,9 @@ export default function Home() {
               variant="outline"
               size="lg"
               className="secondary-hero-button h-14 rounded-2xl border-white/30 px-6 text-base font-semibold text-white hover:bg-white/10 hover:text-white sm:h-16"
-              onClick={() =>
-                showComingSoon("ระบบติดตามเคสจะเปิดใช้งานหลัง Intake API พร้อม")
-              }
+              onClick={() => {
+                window.location.href = "/tracking";
+              }}
             >
               <ClipboardCheck className="mr-2 size-5" />
               ติดตามเคส

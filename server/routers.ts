@@ -8,6 +8,9 @@ import {
   staffProcedure,
 } from "./_core/trpc";
 import { isSupabaseConfigured } from "./supabase";
+import { submitPublicIntake } from "./intake";
+import { lookupPublicTracking } from "./tracking";
+import { z } from "zod";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -42,15 +45,30 @@ export const appRouter = router({
     status: publicProcedure.query(() => ({
       phase: "0-foundation" as const,
       supabaseConfigured: isSupabaseConfigured(),
-      criticalSubmission: "not_implemented_until_phase_1" as const,
+      criticalSubmission: "controlled_intake_mutation_available" as const,
       publicIntakeRequiresLogin: false as const,
     })),
   }),
 
   intake: router({
+    submit: publicProcedure
+      .input(
+        z.object({
+          clientRequestId: z.string().uuid(),
+          createdAt: z.string().datetime(),
+          locationMode: z.enum(["gps", "text"]),
+          locationText: z.string().trim().min(2).max(500),
+          incidentType: z.string().trim().min(2).max(120),
+          peopleTotal: z.number().int().min(1).max(10000),
+          vulnerableNotes: z.string().max(2000),
+          contactName: z.string().max(120),
+          phone: z.string().regex(/^0\d{8,9}$/),
+        })
+      )
+      .mutation(({ input }) => submitPublicIntake(input)),
     status: publicProcedure.query(() => ({
       phase: "1-citizen-critical-intake" as const,
-      implemented: false as const,
+      implemented: true as const,
       contract:
         "client-validate → IndexedDB PENDING → controlled API → server acknowledgement" as const,
       publicIntakeRequiresLogin: false as const,
@@ -58,6 +76,14 @@ export const appRouter = router({
   }),
 
   tracking: router({
+    lookup: publicProcedure
+      .input(
+        z.object({
+          caseCode: z.string().trim().min(6).max(40),
+          trackingToken: z.string().min(16).max(200),
+        }),
+      )
+      .query(({ input }) => lookupPublicTracking(input)),
     status: publicProcedure.query(() => ({
       phase: "1-citizen-critical-intake" as const,
       implemented: false as const,

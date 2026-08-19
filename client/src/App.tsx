@@ -6,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Intake from "./pages/Intake";
+import QueueRuntime from "./components/QueueRuntime";
+import Tracking from "./pages/Tracking";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -13,6 +15,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/intake"} component={Intake} />
+      <Route path={"/tracking"} component={Tracking} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -34,6 +37,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <QueueRuntime />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

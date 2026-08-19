@@ -1,7 +1,10 @@
 import { assertSupabaseConfigured } from "./supabase";
 
+export type AuditActorType = "STAFF" | "PUBLIC_CITIZEN" | "SYSTEM";
+
 export type AuditEvent = {
-  actorUserId: string;
+  actorUserId: string | null;
+  actorType: AuditActorType;
   action: string;
   entityType: string;
   entityId: string;
@@ -11,8 +14,10 @@ export type AuditEvent = {
 };
 
 export async function recordAuditEvent(event: AuditEvent): Promise<void> {
-  if (!event.actorUserId.trim())
-    throw new Error("Audit actorUserId is required");
+  if (!event.actorType) throw new Error("Audit actorType is required");
+  if (event.actorType === "STAFF" && !event.actorUserId?.trim()) {
+    throw new Error("Audit actorUserId is required for staff events");
+  }
   if (!event.action.trim()) throw new Error("Audit action is required");
   if (!event.entityType.trim()) throw new Error("Audit entityType is required");
   if (!event.entityId.trim()) throw new Error("Audit entityId is required");

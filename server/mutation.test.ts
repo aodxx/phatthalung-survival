@@ -3,6 +3,7 @@ import { runAuditedMutation } from "./mutation";
 
 const event = {
   actorUserId: "staff-1",
+  actorType: "STAFF" as const,
   action: "CREATE",
   entityType: "REQUEST",
   entityId: "request-1",

@@ -65,7 +65,7 @@ describe("Phase 0 foundation", () => {
     });
 
     await expect(caller.intake.status()).resolves.toMatchObject({
-      implemented: false,
+      implemented: true,
       publicIntakeRequiresLogin: false,
     });
     await expect(caller.tracking.status()).resolves.toMatchObject({

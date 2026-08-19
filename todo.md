@@ -22,8 +22,8 @@
 
 - [x] Public Emergency Home without citizen login gate
 - [x] Four-step Citizen Intake with persistent Back/Next state
-- [ ] IndexedDB offline-first local queue with retry, exponential backoff, jitter, and idempotency (persistence/retry helper and tests complete; runtime auto-drain awaits controlled acknowledgement transport)
-- [ ] Controlled server acknowledgement, Case ID, secure tracking token, and public-safe tracking
+- [x] IndexedDB offline-first local queue with retry, exponential backoff, jitter, idempotency, and runtime drain on app start/online events via controlled intake mutation
+- [ ] Controlled server acknowledgement, Case ID, hashed tracking token, and public-safe tracking (server acknowledgement/Case ID/token path implemented; public tracking read path and live-write rollout remain pending)
 - [ ] Optional attachment upload after Request creation
 - [ ] Staff authentication, role-based access, and zone-aware access
 - [ ] Operations queue with status/priority/zone/unassigned filters and P1 → waiting time → created_at sorting
@@ -44,3 +44,5 @@
 - [x] Wire role-aware authorization into server-side procedures and add tests proving unauthorized staff roles are blocked
 - [x] Strengthen audit contract with required entity ID and timestamp and integrate audit enforcement into mutation procedure helpers
 - [ ] Wire queue drain to runtime online/start events only after a controlled intake acknowledgement transport exists; never mark a citizen request SENT without server acknowledgement
+- [ ] Adopt `https://github.com/aodxx/phatthalung-survival.git` as the source repository for subsequent development after comparing it with the current working project
+- [ ] Preserve and verify Phase 0/vertical-slice work during repository sync; do not overwrite changes without an explicit comparison

@@ -8,8 +8,8 @@ Client-side validation ครอบคลุมตำแหน่ง ประ�
 
 ## Not yet implemented
 
-Controlled server acknowledgement, durable Request insert, Case ID, secure tracking token และ public-safe tracking ยังไม่เปิดใช้งานใน vertical slice นี้ เพราะต้องสร้าง Intake API/Edge boundary ที่มี service role configuration, rate limit, idempotency และ audit integration ครบก่อน จึงยังไม่แสดงข้อความ “ส่งสำเร็จ” ให้ประชาชน
+Controlled server acknowledgement, durable Request insert, Case ID และ hashed tracking token ถูกเพิ่มใน `server/intake.ts` และ `intake.submit` แล้ว โดยใช้ service-role boundary, `clientRequestId` idempotency lookup และ audit ก่อน mutation ส่วน public-safe tracking read path, rate limit ที่ production edge และการตรวจ live write กับข้อมูลจริงยังรอ owner approval/operational rollout จึงยังไม่แสดงรายละเอียดเคสหรือ tracking token ใน public tracking page
 
 ## Verification
 
-`client/src/lib/offlineQueue.test.ts` ตรวจ persistence, retry schedule, SENT transition หลัง acknowledgement และ FAILED retryable state โดยใช้ fake IndexedDB ทุกครั้งที่มีการเปลี่ยนแปลง queue contract ต้องเพิ่ม test ก่อนส่งมอบ
+`client/src/lib/offlineQueue.test.ts` ตรวจ persistence, retry schedule, SENT transition หลัง acknowledgement และ FAILED retryable state โดยใช้ fake IndexedDB ขณะที่ `QueueRuntime` เรียก drain ตอน app start และ browser online event ผ่าน `trpc.intake.submit` ทุกครั้งที่มีการเปลี่ยนแปลง queue contract ต้องเพิ่ม test ก่อนส่งมอบ

@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
-    "lint": "prettier --check client/index.html client/public/manifest.webmanifest client/public/sw.js client/src/pages/Home.tsx client/src/pages/Intake.tsx client/src/index.css client/src/lib/supabase.ts client/src/lib/offlineQueue.ts client/src/lib/offlineQueue.test.ts client/src/contexts/SupabaseAuthContext.tsx server/routers.ts server/supabase.ts server/audit.ts server/audit.test.ts server/mutation.ts server/mutation.test.ts server/staffAuth.ts server/staffAuth.test.ts server/routers.staff.test.ts server/phase0.foundation.test.ts server/supabase.credentials.test.ts server/supabase.rls.test.ts server/phase0.migration.test.ts shared/emergency.ts docs/*.md OWNER_ACTION_REQUIRED.md README.md package.json .github/workflows/ci.yml",
+    "lint": "prettier --check client/index.html client/public/manifest.webmanifest client/public/sw.js client/src/pages/Home.tsx client/src/pages/Intake.tsx client/src/index.css client/src/lib/supabase.ts client/src/lib/offlineQueue.ts client/src/lib/offlineQueue.test.ts client/src/contexts/SupabaseAuthContext.tsx server/routers.ts server/intake.ts server/intake.test.ts server/supabase.ts server/audit.ts server/audit.test.ts server/mutation.ts server/mutation.test.ts server/staffAuth.ts server/staffAuth.test.ts server/routers.staff.test.ts server/phase0.foundation.test.ts server/supabase.credentials.test.ts server/supabase.rls.test.ts server/phase0.migration.test.ts shared/emergency.ts docs/*.md OWNER_ACTION_REQUIRED.md README.md package.json .github/workflows/ci.yml",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate"
   },
