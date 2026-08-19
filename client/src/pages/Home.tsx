@@ -71,11 +71,9 @@ export default function Home() {
             <Button
               size="lg"
               className="primary-emergency-button h-14 rounded-2xl px-6 text-base font-bold sm:h-16 sm:px-8 sm:text-lg"
-              onClick={() =>
-                showComingSoon(
-                  "แบบฟอร์มแจ้งเหตุ 4 ขั้นตอนจะเปิดใช้งานใน Phase 1"
-                )
-              }
+              onClick={() => {
+                window.location.href = "/intake";
+              }}
             >
               <LifeBuoy className="mr-2 size-5" />
               ขอความช่วยเหลือ

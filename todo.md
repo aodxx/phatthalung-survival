@@ -20,9 +20,9 @@
 
 ## Requested product scope recorded for subsequent phases
 
-- [ ] Public Emergency Home without citizen login gate
-- [ ] Four-step Citizen Intake with persistent Back/Next state
-- [ ] IndexedDB offline-first local queue with retry, exponential backoff, jitter, and idempotency
+- [x] Public Emergency Home without citizen login gate
+- [x] Four-step Citizen Intake with persistent Back/Next state
+- [ ] IndexedDB offline-first local queue with retry, exponential backoff, jitter, and idempotency (persistence/retry helper and tests complete; runtime auto-drain awaits controlled acknowledgement transport)
 - [ ] Controlled server acknowledgement, Case ID, secure tracking token, and public-safe tracking
 - [ ] Optional attachment upload after Request creation
 - [ ] Staff authentication, role-based access, and zone-aware access
@@ -43,3 +43,4 @@
 - [x] Expand anonymous RLS verification to every sensitive operational table and document expected 401/403 or empty result behavior
 - [x] Wire role-aware authorization into server-side procedures and add tests proving unauthorized staff roles are blocked
 - [x] Strengthen audit contract with required entity ID and timestamp and integrate audit enforcement into mutation procedure helpers
+- [ ] Wire queue drain to runtime online/start events only after a controlled intake acknowledgement transport exists; never mark a citizen request SENT without server acknowledgement
