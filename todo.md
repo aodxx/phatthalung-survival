@@ -5,18 +5,18 @@
 - [x] Establish repository structure aligned with Blueprint/PRD: `client`, `server`, `shared`, `supabase`, `docs`, and `.github/workflows`
 - [x] Define and document the emergency-public visual direction: high-contrast crisis UX, Thai-first typography, mobile-first layout, 44px+ touch targets, status labels that do not rely on color alone
 - [x] Add PWA manifest and service-worker baseline without making cached/local data equivalent to server acknowledgement
-- [ ] Add environment management and `.env.example` with no secrets committed (platform restriction prevents committing `.env.example`; owner secrets are configured through project Secrets)
+- [x] Add environment management through `docs/ENVIRONMENT.md` and Project Secrets with no secrets committed (`.env.example` intentionally omitted because the platform disallows editing environment files)
 - [x] Add Supabase/Postgres integration boundary and owner configuration checklist
 - [x] Add reproducible Supabase migrations for MVP entities: requests, request_contacts, request_people_summary, incidents, incident_requests, incident_status_history, duplicate_candidates, missions, mission_status_history, teams, zones, user_profiles, roles, audit_logs, and attachments
 - [x] Add role model skeleton for ADMIN, COMMANDER, INTAKE, TRIAGE, OPERATIONS, FIELD, LOGISTICS, INFORMATION, and VIEWER
 - [x] Add RLS baseline with default-deny posture and public-safe access boundary
-- [ ] Add staff authentication skeleton and role-aware authorization boundary (Manus auth scaffold exists; Supabase Auth staff bootstrap remains pending)
+- [x] Add staff authentication skeleton and role-aware authorization boundary (Manus auth scaffold, Vite Supabase session provider, and `server/staffAuth.ts` policy helper are present; staff bootstrap remains an owner action)
 - [x] Add controlled API boundary for future `/intake` and tracking flows without implementing full Citizen Intake before Phase 0 exits
-- [ ] Add audit foundation so every future mutation contract requires actor, action, entity, entity ID, timestamp, and reason/metadata where applicable (audit table exists; mutation enforcement remains pending)
+- [x] Add audit foundation so every future mutation contract requires actor, action, entity, entity ID, timestamp, and reason/metadata where applicable (`server/audit.ts` validates and writes audit events; feature mutations remain Phase 1+)
 - [x] Add README, ARCHITECTURE.md, SECURITY.md, RUNBOOK.md, TEST_PLAN.md, and OWNER_ACTION_REQUIRED.md
 - [x] Add lint, typecheck, unit-test, build, and CI configuration
 - [x] Add Phase 0 tests for PWA assets, environment validation, role definitions, migration invariants, RLS baseline, and audit requirements
-- [ ] Run lint, tests, build, mobile smoke check, error/empty-state check, and security review; verified: lint, tests, build, typecheck, mobile screenshot, Supabase connectivity, migration, table/RLS inventory, anonymous RLS boundary; remaining: formal empty/error state test and full Phase 0 auth/CI/deploy verification
+- [ ] Run lint, tests, build, mobile smoke check, error/empty-state check, and security review; verified: lint, tests, build, typecheck, mobile screenshot, Supabase connectivity, migration, table/RLS inventory, anonymous RLS boundary, audit/staff unit tests; remaining: formal empty/error runtime check, GitHub CI execution, and deploy verification
 
 ## Requested product scope recorded for subsequent phases
 
@@ -41,3 +41,5 @@
 - [x] Add automated migration invariant tests for entity separation, unique client_request_id, audit fields, and RLS expectations
 - [x] Implement Vite-compatible Supabase browser client and session/auth boundary without Next.js-only APIs
 - [x] Expand anonymous RLS verification to every sensitive operational table and document expected 401/403 or empty result behavior
+- [x] Wire role-aware authorization into server-side procedures and add tests proving unauthorized staff roles are blocked
+- [x] Strengthen audit contract with required entity ID and timestamp and integrate audit enforcement into mutation procedure helpers

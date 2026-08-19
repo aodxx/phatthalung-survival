@@ -31,3 +31,9 @@ Public Citizen ไม่ต้อง login แต่เข้าถึงได�
 การทดสอบ `server/supabase.rls.test.ts` ตรวจตาราง `requests`, `request_contacts`, `request_people_summary`, `incidents`, `incident_requests`, `incident_status_history`, `duplicate_candidates`, `teams`, `missions`, `mission_status_history`, `audit_logs`, `attachments`, `roles` และ `user_profiles` ด้วย publishable key แบบ anonymous
 
 ผลที่ยอมรับได้สำหรับแต่ละตารางคือ HTTP `401` หรือ `403` จาก default-deny หรือ HTTP `200` ที่มีผลลัพธ์ว่างเท่านั้น หาก anonymous client ได้ข้อมูลแถวใด ๆ ถือเป็น security failure และต้องหยุดการส่งมอบ Phase 0 เพื่อแก้ policy/grant ก่อน
+
+## Server enforcement wiring
+
+`server/_core/trpc.ts` มี `roleProcedure` และ `staffProcedure` ที่ตรวจ authenticated user, active staff policy และ allowed roles ก่อนเข้า resolver จริง ส่วน mutation ใน feature phases ต้องใช้ `runAuditedMutation` จาก `server/mutation.ts` ซึ่งเรียก audit ก่อน business mutation และไม่เรียก business mutation หาก audit เขียนไม่ได้
+
+`server/routers.staff.test.ts` ตรวจ viewer/admin behavior และ `server/mutation.test.ts` ตรวจลำดับ audit-before-mutation รวมถึงกรณี audit ล้มเหลว

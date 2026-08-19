@@ -1,7 +1,9 @@
-import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
+import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from "@shared/const";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { assertStaffRole, staffPrincipalFromManusUser } from "../staffAuth";
+import type { StaffRole } from "../../shared/emergency";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -27,11 +29,52 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
+export const roleProcedure = (allowedRoles: readonly StaffRole[]) =>
+  t.procedure.use(
+    t.middleware(async opts => {
+      const { ctx, next } = opts;
+      if (!ctx.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: UNAUTHED_ERR_MSG,
+        });
+      }
+
+      try {
+        const staff = assertStaffRole(
+          staffPrincipalFromManusUser(ctx.user),
+          allowedRoles
+        );
+        return next({ ctx: { ...ctx, user: ctx.user, staff } });
+      } catch (error) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Staff role is not authorized",
+        });
+      }
+    })
+  );
+
+export const staffProcedure = roleProcedure([
+  "ADMIN",
+  "COMMANDER",
+  "INTAKE",
+  "TRIAGE",
+  "OPERATIONS",
+  "FIELD",
+  "LOGISTICS",
+  "INFORMATION",
+  "VIEWER",
+]);
+
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user || ctx.user.role !== 'admin') {
+    if (!ctx.user || ctx.user.role !== "admin") {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
 
@@ -41,5 +84,5 @@ export const adminProcedure = t.procedure.use(
         user: ctx.user,
       },
     });
-  }),
+  })
 );

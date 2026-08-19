@@ -1,7 +1,12 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import {
+  publicProcedure,
+  router,
+  roleProcedure,
+  staffProcedure,
+} from "./_core/trpc";
 import { isSupabaseConfigured } from "./supabase";
 
 export const appRouter = router({
@@ -16,6 +21,21 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+
+  staff: router({
+    status: staffProcedure.query(({ ctx }) => ({
+      authenticated: true as const,
+      staffUserId: ctx.staff.userId,
+      role: ctx.staff.role,
+      zoneId: ctx.staff.zoneId ?? null,
+    })),
+    operationsStatus: roleProcedure(["ADMIN", "COMMANDER", "OPERATIONS"]).query(
+      ({ ctx }) => ({
+        authorized: true as const,
+        role: ctx.staff.role,
+      })
+    ),
   }),
 
   foundation: router({

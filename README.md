@@ -30,13 +30,13 @@ pnpm build
 | `server/`                  | tRPC server, auth boundary, Supabase server boundary และ tests |
 | `shared/`                  | role, status และ audit vocabulary ที่ใช้ร่วมกัน                |
 | `supabase/migrations/`     | PostgreSQL schema, RLS และ index migrations                    |
-| `docs/`                    | architecture, security, runbook และ test plan                  |
+| `docs/`                    | architecture, security, environment, runbook และ test plan     |
 | `OWNER_ACTION_REQUIRED.md` | รายการตั้งค่าที่ต้องทำโดยเจ้าของระบบ                           |
 | `todo.md`                  | รายการงานทั้งหมดและประวัติการดำเนินงาน                         |
 
 ## Security rules
 
-ระบบไม่ใส่ service-role secret ใน client หรือ repository, ไม่เปิด public direct read ต่อ PII tables, ไม่ใช้การซ่อนปุ่มเป็น authorization หลัก, ไม่ auto-merge emergency request และไม่ให้ AI ปฏิเสธเหตุฉุกเฉินโดยอัตโนมัติ
+ระบบไม่ใส่ service-role secret ใน client หรือ repository, ไม่เปิด public direct read ต่อ PII tables, ไม่ใช้การซ่อนปุ่มเป็น authorization หลัก, ไม่ auto-merge emergency request และไม่ให้ AI ปฏิเสธเหตุฉุกเฉินโดยอัตโนมัติ ทุก mutation ที่เริ่มใช้งานต้องเรียก `server/audit.ts` เพื่อบันทึก actor, action, entity และ metadata ที่เกี่ยวข้อง
 
 ## Source of Truth
 
