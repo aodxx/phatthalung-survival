@@ -54,7 +54,7 @@
 - [x] Add client-side attachment picker, validation, list, upload action, and post-Request upload flow without blocking Request creation
 - [x] Add offline attachment pending queue with bounded file-size handling, online drain, and retry state that never claims upload success before server acknowledgement
 - [x] Add controlled upload API/storage boundary with server-side validation, audit event, and Request token access check
-- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, 14 Vitest files / 45 tests, typecheck, lint, and production build; remaining: live storage upload verification, isolated READY idempotency fixture, malware scanning, rate limiting, and visual screenshot because preview URL was unavailable after restart
+- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 14 Vitest files / 46 tests, typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
 - [x] Update `OWNER_ACTION_REQUIRED.md` with storage bucket, retention, malware scanning, and production upload configuration decisions
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
