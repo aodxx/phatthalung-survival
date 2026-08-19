@@ -50,6 +50,8 @@ jobs:
 
       - name: Mark artifact as non-Jekyll
         run: touch dist/public/.nojekyll
+      - name: Add SPA direct-route fallback
+        run: cp dist/public/index.html dist/public/404.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
