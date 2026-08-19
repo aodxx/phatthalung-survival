@@ -149,3 +149,12 @@
 - [ ] Add Vitest/contract coverage for production adapter and Edge Function request/response/error mapping
 - [ ] Run TEST-only end-to-end smoke on GitHub Pages, including intake acknowledgement, duplicate idempotency, tracking wrong-token denial, attachment states, PWA refresh, and cleanup evidence
 - [ ] Update migration audit/evidence and save checkpoint after all gates pass
+
+
+## Owner-confirmed Pages production verification
+
+- [ ] Run GitHub Pages workflow with owner-configured `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` secrets
+- [ ] Verify published production bundle contains Supabase runtime configuration and public transport markers without Manus production dependency
+- [ ] Run GitHub Pages E2E TEST intake, duplicate idempotency, tracking, wrong-token denial, attachment READY/download, PWA reload and direct-route smoke
+- [ ] Verify TEST storage/database cleanup and update runtime evidence
+- [ ] Save final conditional/ready checkpoint only after evidence review
