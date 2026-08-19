@@ -12,7 +12,9 @@ export async function lookupPublicTracking(input: {
   trackingToken: string;
 }): Promise<PublicTrackingResult | null> {
   const supabase = assertSupabaseConfigured();
-  const trackingTokenHash = createHash("sha256").update(input.trackingToken).digest("hex");
+  const trackingTokenHash = createHash("sha256")
+    .update(input.trackingToken)
+    .digest("hex");
   const { data, error } = await supabase
     .from("requests")
     .select("case_code, verification_status, received_at")

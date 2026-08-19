@@ -81,7 +81,7 @@ export const appRouter = router({
         z.object({
           caseCode: z.string().trim().min(6).max(40),
           trackingToken: z.string().min(16).max(200),
-        }),
+        })
       )
       .query(({ input }) => lookupPublicTracking(input)),
     status: publicProcedure.query(() => ({

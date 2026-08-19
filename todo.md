@@ -44,5 +44,5 @@
 - [x] Wire role-aware authorization into server-side procedures and add tests proving unauthorized staff roles are blocked
 - [x] Strengthen audit contract with required entity ID and timestamp and integrate audit enforcement into mutation procedure helpers
 - [ ] Wire queue drain to runtime online/start events only after a controlled intake acknowledgement transport exists; never mark a citizen request SENT without server acknowledgement
-- [ ] Adopt `https://github.com/aodxx/phatthalung-survival.git` as the source repository for subsequent development after comparing it with the current working project
-- [ ] Preserve and verify Phase 0/vertical-slice work during repository sync; do not overwrite changes without an explicit comparison
+- [x] Adopt `https://github.com/aodxx/phatthalung-survival.git` as the source repository for subsequent development after comparing it with the current working project
+- [x] Preserve and verify Phase 0/vertical-slice work during repository sync; do not overwrite changes without an explicit comparison
