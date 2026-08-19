@@ -8,15 +8,17 @@ import Home from "./pages/Home";
 import Intake from "./pages/Intake";
 import QueueRuntime from "./components/QueueRuntime";
 import Tracking from "./pages/Tracking";
+import { getRoutePath } from "@/lib/routing";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
+  const route = (path: string) => getRoutePath(import.meta.env.BASE_URL, path);
+
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/intake"} component={Intake} />
-      <Route path={"/tracking"} component={Tracking} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path={route("/")} component={Home} />
+      <Route path={route("/intake")} component={Intake} />
+      <Route path={route("/tracking")} component={Tracking} />
+      <Route path={route("/404")} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
