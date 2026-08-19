@@ -18,32 +18,32 @@ Baseline commit ที่ตรวจ: `79c776b` (`Checkpoint: Phase 0/1 verific
 
 ## 2. Evidence baseline
 
-| รายการ | หลักฐาน | ผลตรวจ |
-|---|---|---|
-| Audit branch | `agent/github-pages-supabase-migration` was created locally from the current fixing-pass state; `main` was not edited directly | PASS |
-| Repository | `https://github.com/aodxx/phatthalung-survival` is public; default branch is `main` | VERIFIED |
-| Open PRs | GitHub API returned no open PRs at inspection time | FACT, not a completeness claim |
-| GitHub workflows | Repository `.github/workflows/ci.yml` runs install, typecheck, lint, test and build; GitHub also reported a Pages build/deployment workflow, but no repository-owned Pages deploy workflow exists | GAP |
-| Recent CI | Run `32294392690` passed on `main`; run `32294452421` passed for Pages build/deployment; earlier CI failures were also present in recent history | PASS with history noted |
-| Local quality gates | `pnpm check` passed; 70 tests passed, 2 optional Supabase integration tests skipped by default; `pnpm lint` and `pnpm build` passed, with a bundle-size warning | PASS |
-| Requested GitHub Pages URL | `https://aodxx.github.io/phatthalung-survival/` | NOT YET VERIFIED |
+| รายการ                     | หลักฐาน                                                                                                                                                                                           | ผลตรวจ                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Audit branch               | `agent/github-pages-supabase-migration` was created locally from the current fixing-pass state; `main` was not edited directly                                                                    | PASS                           |
+| Repository                 | `https://github.com/aodxx/phatthalung-survival` is public; default branch is `main`                                                                                                               | VERIFIED                       |
+| Open PRs                   | GitHub API returned no open PRs at inspection time                                                                                                                                                | FACT, not a completeness claim |
+| GitHub workflows           | Repository `.github/workflows/ci.yml` runs install, typecheck, lint, test and build; GitHub also reported a Pages build/deployment workflow, but no repository-owned Pages deploy workflow exists | GAP                            |
+| Recent CI                  | Run `32294392690` passed on `main`; run `32294452421` passed for Pages build/deployment; earlier CI failures were also present in recent history                                                  | PASS with history noted        |
+| Local quality gates        | `pnpm check` passed; 70 tests passed, 2 optional Supabase integration tests skipped by default; `pnpm lint` and `pnpm build` passed, with a bundle-size warning                                   | PASS                           |
+| Requested GitHub Pages URL | `https://aodxx.github.io/phatthalung-survival/`                                                                                                                                                   | NOT YET VERIFIED               |
 
 The audit did not merge a PR, shut down Manus deployment, deploy Edge Functions, or mutate database data.
 
 ## 3. Client API call audit
 
-| Client location | Current call | Current runtime dependency | GitHub Pages impact | Target boundary |
-|---|---|---|---|---|
-| `client/src/main.tsx:41-72` | tRPC `httpBatchLink` to `/api/trpc`, `credentials: include`, optional `Authorization` from `sessionStorage` | Express + tRPC + Manus cookie/session context | **P0 blocker**: GitHub Pages has no `/api/trpc` Node route | Replace with Supabase client calls and/or absolute Edge Function URL; remove Manus cookie forwarding from production |
-| `client/src/pages/Intake.tsx:94,131-144` | `trpc.intake.submit.useMutation()` for queue drain and manual retry | `server/routers.ts` → `submitPublicIntake()` → Supabase admin/RPC | **P0 blocker** for acknowledgement | Use a typed Edge Function client or direct safe RPC contract that preserves atomic RPC, acknowledgement and idempotency |
-| `client/src/components/QueueRuntime.tsx` | tRPC Intake mutation on app start/online events | Express/tRPC runtime | **P0 blocker** for reconnect sync | Inject a Supabase-backed transport while preserving PENDING/SENDING/SENT/FAILED semantics |
-| `client/src/pages/Tracking.tsx:22-42` | tRPC tracking lookup and attachment download | Express/tRPC public tracking and signed download route | **P1 blocker** | Use a public tracking Edge Function/safe RPC and signed URL boundary |
-| `client/src/components/AttachmentUploader.tsx:35-47` | `fetch("/api/public/attachments")` with raw Blob and custom headers | Express raw-body route, server validation, storage boundary | **P0 blocker** | Use Supabase Storage signed upload or Edge Function upload endpoint with explicit CORS and idempotency |
-| `client/src/components/AttachmentUploader.tsx:60-96,115-173` | Retry same relative attachment route on startup/`online` | Express attachment route | **P1 blocker** | Keep IndexedDB queue; replace only transport and preserve READY acknowledgement |
-| `client/src/_core/hooks/useAuth.ts` | tRPC auth me/logout | Manus OAuth/session cookie | **P1 blocker** | Staff UI uses Supabase Auth; Manus adapter is dev-only |
-| `client/src/const.ts:15-30` | Manus OAuth portal navigation to `/api/oauth/callback` | Manus OAuth portal, Express callback, Manus SDK | **P0 blocker** | Remove from production path and use Supabase Auth redirect for staff |
-| `client/src/components/Map.tsx:89-98` | Forge map proxy URL and frontend key | Manus Forge API/proxy | **P1 security risk** | Use restricted public map key or secure proxy without privileged browser credential |
-| `client/public/sw.js` | Root-relative cache and fallback URLs | Root deployment path | **P0 path blocker** | Generate base-aware manifest, scope, cache URLs and fallback |
+| Client location                                              | Current call                                                                                                | Current runtime dependency                                        | GitHub Pages impact                                        | Target boundary                                                                                                         |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `client/src/main.tsx:41-72`                                  | tRPC `httpBatchLink` to `/api/trpc`, `credentials: include`, optional `Authorization` from `sessionStorage` | Express + tRPC + Manus cookie/session context                     | **P0 blocker**: GitHub Pages has no `/api/trpc` Node route | Replace with Supabase client calls and/or absolute Edge Function URL; remove Manus cookie forwarding from production    |
+| `client/src/pages/Intake.tsx:94,131-144`                     | `trpc.intake.submit.useMutation()` for queue drain and manual retry                                         | `server/routers.ts` → `submitPublicIntake()` → Supabase admin/RPC | **P0 blocker** for acknowledgement                         | Use a typed Edge Function client or direct safe RPC contract that preserves atomic RPC, acknowledgement and idempotency |
+| `client/src/components/QueueRuntime.tsx`                     | tRPC Intake mutation on app start/online events                                                             | Express/tRPC runtime                                              | **P0 blocker** for reconnect sync                          | Inject a Supabase-backed transport while preserving PENDING/SENDING/SENT/FAILED semantics                               |
+| `client/src/pages/Tracking.tsx:22-42`                        | tRPC tracking lookup and attachment download                                                                | Express/tRPC public tracking and signed download route            | **P1 blocker**                                             | Use a public tracking Edge Function/safe RPC and signed URL boundary                                                    |
+| `client/src/components/AttachmentUploader.tsx:35-47`         | `fetch("/api/public/attachments")` with raw Blob and custom headers                                         | Express raw-body route, server validation, storage boundary       | **P0 blocker**                                             | Use Supabase Storage signed upload or Edge Function upload endpoint with explicit CORS and idempotency                  |
+| `client/src/components/AttachmentUploader.tsx:60-96,115-173` | Retry same relative attachment route on startup/`online`                                                    | Express attachment route                                          | **P1 blocker**                                             | Keep IndexedDB queue; replace only transport and preserve READY acknowledgement                                         |
+| `client/src/_core/hooks/useAuth.ts`                          | tRPC auth me/logout                                                                                         | Manus OAuth/session cookie                                        | **P1 blocker**                                             | Staff UI uses Supabase Auth; Manus adapter is dev-only                                                                  |
+| `client/src/const.ts:15-30`                                  | Manus OAuth portal navigation to `/api/oauth/callback`                                                      | Manus OAuth portal, Express callback, Manus SDK                   | **P0 blocker**                                             | Remove from production path and use Supabase Auth redirect for staff                                                    |
+| `client/src/components/Map.tsx:89-98`                        | Forge map proxy URL and frontend key                                                                        | Manus Forge API/proxy                                             | **P1 security risk**                                       | Use restricted public map key or secure proxy without privileged browser credential                                     |
+| `client/public/sw.js`                                        | Root-relative cache and fallback URLs                                                                       | Root deployment path                                              | **P0 path blocker**                                        | Generate base-aware manifest, scope, cache URLs and fallback                                                            |
 
 The typed client binding in `client/src/lib/trpc.ts` imports `AppRouter` from `server/routers.ts`. This compile-time coupling must be replaced or isolated behind a frontend backend interface before a static-only production build can be considered complete.
 
@@ -51,24 +51,24 @@ The typed client binding in `client/src/lib/trpc.ts` imports `AppRouter` from `s
 
 ### Group A — move to Supabase Edge Functions
 
-| Module/route | Migration target | Required invariants |
-|---|---|---|
-| `server/_core/index.ts:48-86` attachment GET/POST | Edge Function(s), or signed upload plus finalize function | Private bucket, Case ID/token authorization, binary validation, idempotent `client_attachment_id`, sanitized errors, Request independent from attachment |
-| `server/routers.ts` tracking router | Public tracking Edge Function or safe RPC/view endpoint | Public-safe lifecycle only; wrong token denied; no PII/storage path |
-| `server/routers.ts` staff procedures | Supabase Auth + RLS for reads; Edge Functions for privileged writes | Role, zone, active status, admin override, audit reason |
-| `server/_core/oauth.ts` and `_core/sdk.ts` | Remove from production path; Supabase Auth redirect | No Manus production authorization or callback |
-| `server/_core/storageProxy.ts` | Remove; Supabase Storage signed URLs | No Forge storage dependency |
-| `_core/map.ts`, `llm.ts`, `imageGeneration.ts`, `voiceTranscription.ts`, `notification.ts`, `dataApi.ts` | Remove from emergency production path or isolate into separately secured Edge Functions | No service key in Pages bundle; explicit product decision |
+| Module/route                                                                                             | Migration target                                                                        | Required invariants                                                                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/_core/index.ts:48-86` attachment GET/POST                                                        | Edge Function(s), or signed upload plus finalize function                               | Private bucket, Case ID/token authorization, binary validation, idempotent `client_attachment_id`, sanitized errors, Request independent from attachment |
+| `server/routers.ts` tracking router                                                                      | Public tracking Edge Function or safe RPC/view endpoint                                 | Public-safe lifecycle only; wrong token denied; no PII/storage path                                                                                      |
+| `server/routers.ts` staff procedures                                                                     | Supabase Auth + RLS for reads; Edge Functions for privileged writes                     | Role, zone, active status, admin override, audit reason                                                                                                  |
+| `server/_core/oauth.ts` and `_core/sdk.ts`                                                               | Remove from production path; Supabase Auth redirect                                     | No Manus production authorization or callback                                                                                                            |
+| `server/_core/storageProxy.ts`                                                                           | Remove; Supabase Storage signed URLs                                                    | No Forge storage dependency                                                                                                                              |
+| `_core/map.ts`, `llm.ts`, `imageGeneration.ts`, `voiceTranscription.ts`, `notification.ts`, `dataApi.ts` | Remove from emergency production path or isolate into separately secured Edge Functions | No service key in Pages bundle; explicit product decision                                                                                                |
 
 ### Group B — retain as PostgreSQL RPC/Function or RLS policy
 
-| Contract | Existing evidence | Required target |
-|---|---|---|
-| Public Intake | `server/intake.ts` and `20260820000004_public_intake_atomic.sql` | Keep Request → Contact → People Summary → Audit in one transaction |
-| Idempotency | Unique `client_request_id` and real concurrency tests | Keep conflict path returning original Case ID without a new token |
-| Public tracking lifecycle | `server/tracking.ts` maps incident/mission lifecycle | Move safe projection to RPC/view or Edge Function |
-| Audit | `server/audit.ts`, `mutation.ts`, atomic RPC | Preserve actor/action/entity/timestamp and transactional semantics |
-| Staff zone access | `server/supabaseStaffAuth.ts` and RLS migrations | Make Supabase Auth + RLS authoritative; Edge Functions must not bypass RLS accidentally |
+| Contract                  | Existing evidence                                                | Required target                                                                         |
+| ------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Public Intake             | `server/intake.ts` and `20260820000004_public_intake_atomic.sql` | Keep Request → Contact → People Summary → Audit in one transaction                      |
+| Idempotency               | Unique `client_request_id` and real concurrency tests            | Keep conflict path returning original Case ID without a new token                       |
+| Public tracking lifecycle | `server/tracking.ts` maps incident/mission lifecycle             | Move safe projection to RPC/view or Edge Function                                       |
+| Audit                     | `server/audit.ts`, `mutation.ts`, atomic RPC                     | Preserve actor/action/entity/timestamp and transactional semantics                      |
+| Staff zone access         | `server/supabaseStaffAuth.ts` and RLS migrations                 | Make Supabase Auth + RLS authoritative; Edge Functions must not bypass RLS accidentally |
 
 ### Group C — development-only/removable after verification
 
@@ -100,26 +100,26 @@ The required future workflow is: install → typecheck → lint → test → fro
 
 ## 8. Priority blockers and acceptance gates
 
-| Priority | Blocker | Acceptance gate |
-|---|---|---|
-| P0 | Intake/queue depend on `/api/trpc` | Pages URL passes online, offline, reconnect, acknowledgement, duplicate race and cleanup |
-| P0 | Attachment depends on same-origin Express raw-body route | Signed upload/READY/retry/download/wrong-token/cleanup pass |
-| P0 | Root-relative Vite/PWA paths | Direct routes, refresh, manifest, install and offline shell pass under `/phatthalung-survival/` |
-| P0 | Manus OAuth remains in production path | Supabase staff Auth/RLS pass and production bundle/runtime has no Manus auth dependency |
-| P1 | No checked-in official Pages deployment workflow | CI gates Pages artifact/deploy and live URL returns 200 |
-| P1 | CORS/Auth redirect not configured for Pages origin | Exact-origin preflight and redirect tests pass |
-| P1 | Rate limiting not found in audited server/client code | Abuse tests and operational limits documented |
-| P2 | Template-only Manus integrations remain | Each module marked retained, Edge Function or removed with tests |
+| Priority | Blocker                                                  | Acceptance gate                                                                                 |
+| -------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| P0       | Intake/queue depend on `/api/trpc`                       | Pages URL passes online, offline, reconnect, acknowledgement, duplicate race and cleanup        |
+| P0       | Attachment depends on same-origin Express raw-body route | Signed upload/READY/retry/download/wrong-token/cleanup pass                                     |
+| P0       | Root-relative Vite/PWA paths                             | Direct routes, refresh, manifest, install and offline shell pass under `/phatthalung-survival/` |
+| P0       | Manus OAuth remains in production path                   | Supabase staff Auth/RLS pass and production bundle/runtime has no Manus auth dependency         |
+| P1       | No checked-in official Pages deployment workflow         | CI gates Pages artifact/deploy and live URL returns 200                                         |
+| P1       | CORS/Auth redirect not configured for Pages origin       | Exact-origin preflight and redirect tests pass                                                  |
+| P1       | Rate limiting not found in audited server/client code    | Abuse tests and operational limits documented                                                   |
+| P2       | Template-only Manus integrations remain                  | Each module marked retained, Edge Function or removed with tests                                |
 
 ## 9. Recommended migration sequence
 
-| Phase | Work | Definition of done |
-|---|---|---|
-| 0 — Contract decoupling | Add a frontend backend interface and preview/production adapters; retain current Manus preview | Preview remains green and new production transport does not import `AppRouter` |
-| 1 — Supabase critical paths | Implement Intake, tracking and attachment Edge Function/RPC boundaries | Supabase TEST-only integration and zero-row cleanup pass |
-| 2 — Static frontend | Set Vite base, Pages-compatible routing, manifest/service worker paths, production secret scan | Pages artifact works under subpath and bundle contains only approved public values |
-| 3 — CI/deployment | Add official Pages workflow; configure Pages, Supabase CORS/Auth redirects/secrets | CI-gated Pages deployment and URL smoke pass |
-| 4 — Cutover | Run full online/offline/reconnect/GPS/tracking/attachment/staff/RLS matrix | Owner signs off; only then disable Manus production dependency |
+| Phase                       | Work                                                                                           | Definition of done                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 0 — Contract decoupling     | Add a frontend backend interface and preview/production adapters; retain current Manus preview | Preview remains green and new production transport does not import `AppRouter`     |
+| 1 — Supabase critical paths | Implement Intake, tracking and attachment Edge Function/RPC boundaries                         | Supabase TEST-only integration and zero-row cleanup pass                           |
+| 2 — Static frontend         | Set Vite base, Pages-compatible routing, manifest/service worker paths, production secret scan | Pages artifact works under subpath and bundle contains only approved public values |
+| 3 — CI/deployment           | Add official Pages workflow; configure Pages, Supabase CORS/Auth redirects/secrets             | CI-gated Pages deployment and URL smoke pass                                       |
+| 4 — Cutover                 | Run full online/offline/reconnect/GPS/tracking/attachment/staff/RLS matrix                     | Owner signs off; only then disable Manus production dependency                     |
 
 ## 10. OWNER ACTION REQUIRED
 
