@@ -236,9 +236,8 @@
 - [x] Enforce persisted request/incident/mission current-status transition guards inside Supabase RPCs; adapters no longer accept previousStatus from client and contract tests pass
 - [x] Implement duplicate-candidate triage decision RPC/router with CONFIRMED/REJECTED/IGNORED decisions, required reason, role boundary, and audit metadata; 9 Phase 2 contract tests pass
 
-
 ## Evidence gaps reopened
 
 - [ ] Complete real browser attachment UI verification in one valid TEST Case ID/token session, or retain as conditional if file-picker/network controls are unavailable
-- [ ] Complete broader mobile/deployment smoke beyond Tracking-only proof for the Phase 0 exit gate
+- [x] Complete broader mobile/deployment smoke beyond Tracking-only proof for the Phase 0 exit gate; production Home, Intake, Tracking, and Operations mobile snapshots are recorded, with Pages direct-route HTTP 404 fallback and unauthenticated Operations query classified as CONDITIONAL
 - [ ] Separate attachment security owner actions (malware scanning, rate limiting, retention) from completed contract coverage and obtain owner approval
