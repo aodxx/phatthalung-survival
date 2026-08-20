@@ -22,18 +22,12 @@ Deployment smoke (published domain, 2026-08-20): `https://phatsurvive-gwfre5qo.m
 
 Offline browser-restart limitation: an attempted Playwright context offline/reload run was blocked before execution because the configured Firefox executable was not installed and the MCP server did not expose an install tool. Therefore no claim is made that a physical network-offline browser restart passed; this remains the final verification gate.
 
-## Router/base-path production verification — 2026-08-20
+Offline/browser-reload smoke (preview HTTPS, 2026-08-20): หลังโหลด Home online แล้วตั้ง browser context เป็น offline และ reload หน้าเดิม ผลตรวจคืน `beforeHasHome: true`, `offlineHasHome: true`, `offlineHasHelpCta: true` และ URL เดิม จึงยืนยันว่า PWA shell และ emergency CTA ยังแสดงได้หลัง offline reload. Console พบ 3 errors เฉพาะ Vite HMR WebSocket connection failures (`@vite/client` to preview/localhost:5173) ซึ่งเป็นผลคาดหมายของการตัด network ใน development preview ไม่ใช่ application runtime exception; ไม่มี warning.
 
-PR #5, `fix: support GitHub Pages subpath routing`, was merged into `main`, and Pages workflow run `32316093421` completed successfully for commit `cdbaeb2fe6bb56ecef0fa6f542b45f159307c328`. The live root `https://aodxx.github.io/phatthalung-survival/` renders the emergency Home shell instead of the application 404 page. Direct routes `/intake` and `/tracking` also render their intended pages successfully on the GitHub Pages subpath. The workflow produced the GitHub Pages artifact and reported the live deployment URL. Remaining workflow annotations are Node.js 20 deprecation warnings, not application failures.
+Preview matrix continuation (preview HTTPS, 2026-08-20): Playwright at 390×844 confirmed Home emergency CTA, Home→`/intake` navigation with intake content, direct `/tracking` route, and mobile viewport behavior. The wrong-token case displayed the public-safe message `ไม่พบข้อมูลที่ตรงกัน กรุณาตรวจสอบ Case ID และ token...` without exposing internal data. The first automated boolean check used an overly narrow expected phrase and returned false; a follow-up DOM assertion captured the actual message and passed. No new Request or attachment was created by this matrix.
 
-## Full E2E matrix run — TEST_RUN_20260820
+Post-merge GitHub Pages verification (2026-08-20): PR #4 was merged into `main` as `e35460a8de16064121e6f739034f350c0817058d`. Pages workflow `32310795833` reported successful build and deploy, and Pages metadata reported `status: built`. However, browser navigation to `https://aodxx.github.io/phatthalung-survival/` and `/index.html` rendered the GitHub Pages 404 document instead of the React emergency shell. This is a deployment/artifact routing failure and blocks production bundle marker and browser E2E readiness claims until fixed.
 
-- Supabase TEST RLS fixture passed same-zone, other-zone, ADMIN, wrong-role, and field-assignment assertions; fixture cleanup completed.
-- Automated online/offline/attachment regression suite passed 16 files and 70 tests; 2 optional Supabase integration tests were skipped.
-- Published `/` returned 200; manifest and service worker returned 200; direct `/intake` and `/tracking` returned HTTP 404 but browser navigation rendered React through the `404.html` fallback.
-- Live TEST evidence covers atomic rollback, concurrent idempotency, tracking wrong-token denial, attachment READY/signed download, private object deletion, and database cleanup.
-- Full browser network-control evidence for offline reload/reconnect drain, GPS permission-denied, and attachment pending-to-READY remains CONDITIONAL and must use TEST data only.
+- Fresh-tab Playwright evidence: Intake offline reload preserved the route and rendered `ขั้นตอน 1 จาก 4`, `จุดเกิดเหตุ`, and `ถัดไป` with no application-error overlay. Offline submit/reconnect acknowledgement and offline attachment upload remain unverified in browser.
 
-- Playwright network-control addendum: offline reload of published Tracking retained the Tracking heading and Case ID field with no application-error overlay. TEST-only wrong-token form rendered the sanitized alert. The browser network snapshot became unavailable after context reset, so live transport classification for this single browser attempt is CONDITIONAL; prior Edge Function/unit wrong-token evidence remains PASS.
-
-- Intake browser addendum: navigation returned the Pages fallback status with no console error, but the subsequent offline script remained on the prior Tracking page and did not prove Intake controls. Classified CONDITIONAL, not PASS.
+- Final regression gate after E2E evidence: Prettier/lint, Vitest 70 passed with 2 optional skips, TypeScript, and production build passed. Tracking formatting was normalized after the evidence append.

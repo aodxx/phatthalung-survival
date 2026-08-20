@@ -19,10 +19,6 @@ import {
   type QueueItem,
 } from "@/lib/offlineQueue";
 import { trpc } from "@/lib/trpc";
-import {
-  isSupabaseProductionRuntime,
-  submitPublicIntakeProduction,
-} from "@/lib/publicApi";
 
 type IntakeDraft = {
   locationMode: "gps" | "text" | "";
@@ -136,9 +132,7 @@ export default function Intake() {
     if (!queueItem) return;
     setRetrying(true);
     await drainQueue(async item => {
-      const response = isSupabaseProductionRuntime()
-        ? await submitPublicIntakeProduction(item)
-        : await submitQueued(item);
+      const response = await submitQueued(item);
       return {
         acknowledged:
           response.status === "RECEIVED" ||
