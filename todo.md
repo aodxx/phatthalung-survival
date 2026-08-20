@@ -205,3 +205,4 @@
 - [x] Write full E2E matrix report and update runtime smoke evidence; remaining browser network-control cases are explicitly CONDITIONAL
 
 - [x] Add browser automation evidence for offline Tracking shell reload and TEST-only wrong-token sanitized alert; classify unavailable live network snapshot as CONDITIONAL rather than PASS
+- [x] Record Intake browser offline attempt as CONDITIONAL when Playwright fallback/context transition prevented verifying Intake controls; do not overstate coverage

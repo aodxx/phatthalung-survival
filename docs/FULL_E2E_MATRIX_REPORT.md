@@ -35,3 +35,7 @@ A formal browser automation run must control network offline/online state, reloa
 ## Browser automation addendum
 
 A Playwright browser run set the context offline and reloaded the published Tracking route. The page still rendered the Tracking heading and Case ID field with no application-error overlay, so offline shell resilience passed. A TEST-only wrong-token submission rendered the sanitized Thai alert state. The browser session reported one console error and the final network snapshot was unavailable after the page context reset; therefore the live production wrong-token transport result is recorded as CONDITIONAL for this run, while the previously verified live Edge Function/unit evidence remains PASS.
+
+## Intake browser addendum
+
+A production Intake navigation returned the expected GitHub Pages HTTP 404 fallback status and no console error at navigation time. The subsequent offline script remained on the prior Tracking page after the fallback/context transition, so it did not prove Intake controls under offline reload. This case is therefore **CONDITIONAL**, not PASS; the offline Tracking shell case remains PASS.
