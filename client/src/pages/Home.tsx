@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { getRoutePath } from "@/lib/routing";
 
 const emergencyContacts = [
   { label: "แจ้งเหตุฉุกเฉิน", number: "1669", note: "เจ็บป่วยหรืออุบัติเหตุ" },
@@ -25,6 +26,7 @@ const emergencyContacts = [
 
 export default function Home() {
   const [notice, setNotice] = useState<string | null>(null);
+  const route = (path: string) => getRoutePath(import.meta.env.BASE_URL, path);
 
   const showComingSoon = (message: string) => {
     setNotice(message);
@@ -72,7 +74,7 @@ export default function Home() {
               size="lg"
               className="primary-emergency-button h-14 rounded-2xl px-6 text-base font-bold sm:h-16 sm:px-8 sm:text-lg"
               onClick={() => {
-                window.location.href = "/intake";
+                window.location.href = route("/intake");
               }}
             >
               <LifeBuoy className="mr-2 size-5" />
@@ -84,7 +86,7 @@ export default function Home() {
               size="lg"
               className="secondary-hero-button h-14 rounded-2xl border-white/30 px-6 text-base font-semibold text-white hover:bg-white/10 hover:text-white sm:h-16"
               onClick={() => {
-                window.location.href = "/tracking";
+                window.location.href = route("/tracking");
               }}
             >
               <ClipboardCheck className="mr-2 size-5" />
