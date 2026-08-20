@@ -53,8 +53,26 @@ jobs:
 
       - name: Mark artifact as non-Jekyll
         run: touch dist/public/.nojekyll
-      - name: Add SPA direct-route fallback
-        run: cp dist/public/index.html dist/public/404.html
+      - name: Add SPA direct-route fallback and scope PWA assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp dist/public/index.html dist/public/404.html
+          node <<'NODE'
+          const fs = require("node:fs");
+          const dir = "dist/public";
+          const base = "/phatthalung-survival/";
+          const manifestPath = `${dir}/manifest.webmanifest`;
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+          manifest.start_url = base;
+          manifest.scope = base;
+          fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+          const swPath = `${dir}/sw.js`;
+          let sw = fs.readFileSync(swPath, "utf8");
+          sw = sw.replace('const APP_SHELL = ["/", "/manifest.webmanifest"];', `const APP_SHELL = ["${base}", "${base}manifest.webmanifest"];`);
+          sw = sw.replace('caches.match("/")', `caches.match("${base}")`);
+          fs.writeFileSync(swPath, sw);
+          NODE
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
