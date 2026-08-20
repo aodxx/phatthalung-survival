@@ -61,7 +61,7 @@
 
 **ต้องทำอะไร:** ตรวจชื่อโดเมน, HTTPS, PWA installability และ policy สำหรับข้อมูลสาธารณะ
 
-**หลังทำเสร็จ:** ทดสอบ mobile viewport, offline shell, secure headers, public API ที่ไม่ส่ง PII และ workflow backup/recovery ก่อนเปิดให้ประชาชนใช้
+**สถานะล่าสุด:** GitHub Pages production deployment สำเร็จผ่าน workflow runs `32325960656` และ `32325737498`; HTTPS และ PWA shell/direct-route smoke ผ่านบางส่วน โดย Home CTA แบบ cache-busted ไปยัง `/phatthalung-survival/intake` และ direct Tracking route แสดง shell ได้ ส่วน offline reconnect drain, secure-header review และ backup/recovery ยังต้องทดสอบ/อนุมัติเพิ่มเติมก่อนเปิดใช้งานจริง
 
 ## 6. ยืนยันนโยบาย production สำหรับ attachments
 
@@ -69,4 +69,4 @@
 
 ## 9. ตั้งค่า GitHub Actions secrets สำหรับ Supabase production frontend
 
-ก่อนยืนยัน production runtime บน GitHub Pages ให้เพิ่ม repository secrets ชื่อ `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ใน GitHub repository settings ของ `aodxx/phatthalung-survival` โดยใช้ค่าจาก active Supabase project `ulawoqswzqfpqyssxggn` เท่านั้น ห้ามใช้ service-role key ใน frontend หรือ workflow artifact การตั้งค่านี้ทำให้ `pages.yml` build ด้วย `VITE_RUNTIME_BACKEND=supabase`; หากยังไม่ตั้งค่า ระบบจะ fail closed และ Manus preview adapter จะยังเป็นทางเลือกสำหรับ development เท่านั้น
+สถานะ **เสร็จแล้วตามที่ owner ยืนยัน**: repository secrets `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ถูกตั้งค่าใน `aodxx/phatthalung-survival` และ Pages workflow runs `32325960656`/`32325960697` ผ่าน โดย build ใช้ `VITE_RUNTIME_BACKEND=supabase`; ไม่มี secret ถูก commit หรือฝังใน source

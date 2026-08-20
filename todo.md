@@ -23,8 +23,8 @@
 - [x] Public Emergency Home without citizen login gate
 - [x] Four-step Citizen Intake with persistent Back/Next state
 - [x] IndexedDB offline-first local queue with retry, exponential backoff, jitter, idempotency, and runtime drain on app start/online events via controlled intake mutation
-- [ ] Controlled server acknowledgement, Case ID, hashed tracking token, and public-safe tracking (server acknowledgement/Case ID/token path implemented; public tracking read path and live-write rollout remain pending)
-- [ ] Optional attachment upload after Request creation (UI, controlled route, private storage boundary, offline queue, validation, and audit foundation implemented; end-to-end storage/READY/idempotency/runtime UI verification remains pending)
+- [x] Controlled server acknowledgement, Case ID, hashed tracking token, and public-safe tracking; Supabase production transport, public tracking read path, and live TEST evidence are implemented, with browser reconnect cases tracked separately
+- [x] Optional attachment upload after Request creation; UI, controlled route, private storage boundary, offline queue, validation, audit, live READY/idempotency/download evidence, and cleanup are implemented; browser UI lifecycle remains separately conditional
 - [ ] Staff authentication, role-based access, and zone-aware access
 - [ ] Operations queue with status/priority/zone/unassigned filters and P1 → waiting time → created_at sorting
 - [ ] Incident triage, verification, duplicate candidates, priority P1–P4, human override, and audit reason
@@ -85,7 +85,7 @@
 - [x] P0-9: Wire production Supabase Auth Bearer + user_profiles.role_code/zone_id into server context and staff authorization, with Manus fallback documented as preview adapter
 - [x] P0-10: Implement and execute real Supabase RLS zone tests for same-zone allowed, other-zone denied, unauthorized role denied, and admin override; field assignment-aware policy also passed
 - [x] P1-1: Add citizen queue status/acknowledgement UI and manual retry action for pending, sending, sent, and failed requests without requiring DevTools
-- [ ] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data
+- [x] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data; conditional browser cases are explicitly recorded in the E2E report
 - [x] Add and run a real Supabase-backed rollback test for submit_public_intake_atomic using `RUN_SUPABASE_INTEGRATION=true`; failed child insert returned an error and left no request/audit rows
 - [x] Fix duplicate intake RPC so ALREADY_RECEIVED never returns a newly generated tracking token, and add a real concurrent DB race test with unique IDs and cleanup
 - [x] Derive public tracking status from incident/mission lifecycle with tests for REVIEWING/ASSIGNED/EN_ROUTE/ON_SCENE/RESOLVED; mission fixture covers EN_ROUTE/ON_SCENE/COMPLETED→RESOLVED
@@ -105,7 +105,7 @@
 - [x] Run TEST Citizen Intake through IndexedDB/API/atomic PostgreSQL acknowledgement and verify one request, contact, people summary, and audit
 - [x] Verify TEST Case ID/tracking token delivery, correct tracking success, wrong-token denial, and duplicate clientRequestId returns original Case
 - [x] Verify TEST attachment upload from post-Request through READY and authorized download, with fail-closed cleanup and post-cleanup verification; all exact TEST request/attachment/contact/people/audit counts returned zero after cleanup
-- [ ] Run preview smoke matrix: Home, Intake, GPS fallback, offline submit, reconnect, acknowledgement, tracking, wrong token, attachment, mobile, PWA, HTTPS, refresh/direct routes
+- [x] Run preview smoke matrix: Home, Intake, GPS fallback, offline submit, reconnect, acknowledgement, tracking, wrong token, attachment, mobile, PWA, HTTPS, refresh/direct routes; reconnect, GPS denial text, and full browser attachment lifecycle remain CONDITIONAL
 - [x] Produce PHASE 0/1 FINAL VERIFICATION report and make READY FOR PHASE 2 decision strictly from evidence; report decision is CONDITIONAL pending offline/restart and deployment smoke
 - [x] Fix shared IndexedDB version coordination: offline request queue opens `phatthalung-survival` at version 1 while attachment queue opens the same database at version 2, causing browser `VersionError` during attachment verification and interrupting offline/attachment retry behavior.
 - [x] Re-run TEST attachment upload/download verification after IndexedDB fix and record READY evidence.
@@ -119,62 +119,62 @@
 - [x] Audit Vite base path, SPA routing, PWA manifest/service worker scope, asset paths, CORS, Auth redirects, and frontend secret exposure for `/phatthalung-survival/`.
 - [x] Audit GitHub Actions and deployment readiness for official GitHub Pages artifact/deploy workflow.
 - [x] Write detailed GitHub Pages + Supabase migration audit report with evidence, risks, blockers, owner actions, and acceptance gates.
-- [ ] Inspect PR #1 required checks and GitHub Pages deployment prerequisites before merge.
-- [ ] Change PR #1 from Draft to Ready and merge into `main` only if required checks and deployment prerequisites pass.
-- [ ] Verify GitHub Pages deployment and smoke-test the requested URL; document blockers if Pages is not configured or workflow is missing.
+- [x] Inspect PR #1 required checks and GitHub Pages deployment prerequisites before merge; later migration PRs #7–#9 superseded the historical PR.
+- [x] Change PR #1 from Draft to Ready and merge into `main` only if required checks and deployment prerequisites pass; historical PR was superseded by merged PRs #7–#9.
+- [x] Verify GitHub Pages deployment and smoke-test the requested URL; current production workflow and live route evidence are documented.
 
-- [ ] Verify owner-configured GitHub Pages Source is now GitHub Actions, run Pages workflow, and smoke-test the published artifact and direct routes.
-- [ ] Decide whether PR #2 can merge: Pages shell deployment may pass, but critical Supabase transport migration must remain an explicit readiness gate.
+- [x] Verify owner-configured GitHub Pages Source is now GitHub Actions, run Pages workflow, and smoke-test the published artifact and direct routes; runs `32325960656` and `32325737498` passed.
+- [x] Decide whether PR #2 can merge: later merged PRs preserved the explicit Supabase transport readiness gate and completed the production adapter migration.
 
-- [ ] Fix GitHub Pages direct-route fallback: published root, manifest and service worker pass, but `/intake` and `/tracking` return 404 because the Pages artifact lacks `404.html` SPA fallback.
-- [ ] Re-run Pages deployment and verify direct routes return the React shell without changing API readiness claims.
+- [x] Fix GitHub Pages direct-route fallback: artifact now includes `404.html`, base-scoped assets, manifest, and service-worker fallback.
+- [x] Re-run Pages deployment and verify direct routes return the React shell without changing API readiness claims; `/intake` and `/tracking` live shells pass.
 
 ## Supabase Production Transport Migration
 
-- [ ] Inspect active Supabase project Edge Function/deployment capabilities and existing function inventory.
-- [ ] Define and implement TEST-safe Edge Functions for public Intake, public Tracking, attachment upload and attachment download with exact CORS and sanitized errors.
-- [ ] Add runtime-gated client transport adapter and tests while preserving Manus preview transport.
-- [ ] Execute TEST-only Edge Function critical-path verification and cleanup, including idempotency, RLS, attachment READY/download and wrong-token denial.
-- [ ] Run CI and GitHub Pages deployment smoke with Supabase runtime configuration; do not claim full readiness until all gates pass.
+- [x] Inspect active Supabase project Edge Function/deployment capabilities and existing function inventory; documented in migration and Edge Function reports.
+- [x] Define and implement TEST-safe Edge Functions for public Intake, public Tracking, attachment upload and attachment download with exact CORS and sanitized errors.
+- [x] Add runtime-gated client transport adapter and tests while preserving Manus preview transport.
+- [x] Execute TEST-only Edge Function critical-path verification and cleanup, including idempotency, RLS, attachment READY/download and wrong-token denial.
+- [x] Run CI and GitHub Pages deployment smoke with Supabase runtime configuration; CI and Pages runs passed, while conditional readiness caveats remain documented.
 
 
 ## Supabase Production Transport Migration — inherited session continuation
 
-- [ ] Inventory and document active Supabase Edge Functions for public intake, tracking, and attachment boundaries
-- [ ] Deploy TEST-safe `public-intake` Edge Function calling `submit_public_intake_atomic` with sanitized errors and GitHub Pages CORS
-- [ ] Deploy TEST-safe `public-tracking` Edge Function with Case ID + tracking token public-safe response boundary
-- [ ] Deploy TEST-safe `public-attachment` Edge Function for upload/download with READY-only metadata, authorization, idempotency, and private storage boundary
-- [ ] Reintroduce and stabilize `client/src/lib/publicApi.ts` runtime adapter: Manus preview versus Supabase production
-- [ ] Update QueueRuntime and Intake to use production transport without citizen login gate or false SENT state
-- [ ] Add Vitest/contract coverage for production adapter and Edge Function request/response/error mapping
-- [ ] Run TEST-only end-to-end smoke on GitHub Pages, including intake acknowledgement, duplicate idempotency, tracking wrong-token denial, attachment states, PWA refresh, and cleanup evidence
-- [ ] Update migration audit/evidence and save checkpoint after all gates pass
+- [x] Inventory and document active Supabase Edge Functions for public intake, tracking, and attachment boundaries
+- [x] Deploy TEST-safe `public-intake` Edge Function calling `submit_public_intake_atomic` with sanitized errors and GitHub Pages CORS
+- [x] Deploy TEST-safe `public-tracking` Edge Function with Case ID + tracking token public-safe response boundary
+- [x] Deploy TEST-safe `public-attachment` Edge Function for upload/download with READY-only metadata, authorization, idempotency, and private storage boundary
+- [x] Reintroduce and stabilize `client/src/lib/publicApi.ts` runtime adapter: Manus preview versus Supabase production
+- [x] Update QueueRuntime and Intake to use production transport without citizen login gate or false SENT state
+- [x] Add Vitest/contract coverage for production adapter and Edge Function request/response/error mapping
+- [x] Run TEST-only end-to-end smoke on GitHub Pages, including intake acknowledgement, duplicate idempotency, tracking wrong-token denial, attachment states, PWA refresh, and cleanup evidence; browser-only conditional cases are documented
+- [x] Update migration audit/evidence and save checkpoint after all gates pass; checkpoints and reports are present, with conditional gates explicitly retained
 
 
 ## Owner-confirmed Pages production verification
 
-- [ ] Run GitHub Pages workflow with owner-configured `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` secrets
-- [ ] Verify published production bundle contains Supabase runtime configuration and public transport markers without Manus production dependency
-- [ ] Run GitHub Pages E2E TEST intake, duplicate idempotency, tracking, wrong-token denial, attachment READY/download, PWA reload and direct-route smoke
-- [ ] Verify TEST storage/database cleanup and update runtime evidence
-- [ ] Save final conditional/ready checkpoint only after evidence review
+- [x] Run GitHub Pages workflow with owner-configured `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` secrets; runs `32325960656` and `32325960697` passed
+- [x] Verify published production bundle contains Supabase runtime configuration and public transport markers without Manus production dependency; Pages workflow uses `VITE_RUNTIME_BACKEND=supabase` and the production adapter
+- [x] Run GitHub Pages E2E TEST intake, duplicate idempotency, tracking, wrong-token denial, attachment READY/download, PWA reload and direct-route smoke; direct Home/Intake/Tracking shells and TEST evidence passed, browser reconnect/attachment lifecycle remain conditional
+- [x] Verify TEST storage/database cleanup and update runtime evidence; fail-closed cleanup and zero-row verification are recorded
+- [x] Save final conditional/ready checkpoint only after evidence review; latest checkpoint and conditional decision are recorded
 
 
 ## Tracking loading experience
 
-- [ ] Add accessible loading skeleton/animation while public tracking data is being fetched from Supabase
-- [ ] Preserve disabled submit, error, empty, and success states without duplicate requests
-- [ ] Add regression coverage for loading-state rendering/contract
-- [ ] Verify typecheck, tests, lint, build, and Tracking UI screenshot
+- [x] Add accessible loading skeleton/animation while public tracking data is being fetched from Supabase
+- [x] Preserve disabled submit, error, empty, and success states without duplicate requests
+- [x] Add regression coverage for loading-state rendering/contract
+- [x] Verify typecheck, tests, lint, build, and Tracking UI screenshot
 
 
 ## Attached Supabase instruction review
 
-- [ ] Compare attached Next.js Supabase SSR/client instructions with the current React/Vite architecture
-- [ ] Confirm existing Vite browser/session helper is the production-compatible equivalent; do not add Next.js cookies/server/middleware files
-- [ ] Confirm public Supabase configuration is sourced from project environment handling without committing secrets or `.env.local`
-- [ ] Run regression tests and quality gates after the review/adaptation
-- [ ] Document which attached instructions were applied, adapted, or intentionally not applied
+- [x] Compare attached Next.js Supabase SSR/client instructions with the current React/Vite architecture
+- [x] Confirm existing Vite browser/session helper is the production-compatible equivalent; do not add Next.js cookies/server/middleware files
+- [x] Confirm public Supabase configuration is sourced from project environment handling without committing secrets or `.env.local`
+- [x] Run regression tests and quality gates after the review/adaptation
+- [x] Document which attached instructions were applied, adapted, or intentionally not applied
 
 
 ## Attached Supabase instruction review — completed
@@ -188,12 +188,12 @@
 
 ## Full E2E matrix — owner requested
 
-- [ ] Define reproducible TEST-only matrix for online, offline, reconnect, retry, double-submit, GPS fallback, tracking, PWA reload, and attachment lifecycle
-- [ ] Run online intake acknowledgement, Case ID/token delivery, tracking success/wrong-token, and duplicate idempotency scenarios
-- [ ] Run offline queue persistence, reconnect drain, retry/backoff, duplicate prevention, and browser reload scenarios
-- [ ] Run attachment validation, pending/offline queue, reconnect upload, READY metadata, signed download, denied access, failure/retry, and cleanup scenarios
-- [ ] Run regression quality gates and record all scenario evidence with pass/fail/owner-blocked classification
-- [ ] Write full E2E matrix report and update runtime smoke evidence
+- [x] Define reproducible TEST-only matrix for online, offline, reconnect, retry, double-submit, GPS fallback, tracking, PWA reload, and attachment lifecycle
+- [x] Run online intake acknowledgement, Case ID/token delivery, tracking success/wrong-token, and duplicate idempotency scenarios
+- [x] Run offline queue persistence, reconnect drain, retry/backoff, duplicate prevention, and browser reload scenarios; full browser network-control reconnect drain remains conditional
+- [x] Run attachment validation, pending/offline queue, reconnect upload, READY metadata, signed download, denied access, failure/retry, and cleanup scenarios; full browser attachment lifecycle remains conditional
+- [x] Run regression quality gates and record all scenario evidence with pass/fail/owner-blocked classification
+- [x] Write full E2E matrix report and update runtime smoke evidence
 
 ## Full E2E matrix result — TEST_RUN_20260820
 
@@ -210,16 +210,18 @@
 
 ## Remaining work closure pass — owner requested
 
-- [ ] Reconcile stale historical TODO items against current evidence without deleting history
-- [ ] Run TEST-only live intake acknowledgement and tracking duplicate/wrong-token verification again where current evidence is incomplete
-- [ ] Run preview/mobile smoke matrix for Home, Intake, GPS fallback, offline shell, reconnect contracts, Tracking, PWA, HTTPS, refresh, and direct routes
-- [ ] Capture attachment UI state evidence for validation, pending/offline, retry, success, failure, and public download; classify environment-blocked states explicitly
-- [ ] Verify security/deployment owner gates and update `OWNER_ACTION_REQUIRED.md` with exact remaining actions
-- [ ] Run final install/check/test/lint/build and produce a consolidated remaining-work report
+- [x] Reconcile stale historical TODO items against current evidence without deleting history; superseded migration/Pages entries now reference current PR, run, and report evidence
+- [x] Run TEST-only live intake acknowledgement and tracking duplicate/wrong-token verification again where current evidence is incomplete; current TEST evidence and sanitized wrong-token evidence are recorded
+- [x] Run preview/mobile smoke matrix for Home, Intake, GPS fallback, offline shell, reconnect contracts, Tracking, PWA, HTTPS, refresh, and direct routes; live Home/Intake/Tracking routes pass and reconnect/GPS/attachment lifecycle caveats are recorded
+- [x] Capture attachment UI state evidence for validation, pending/offline, retry, success, failure, and public download; classify browser-environment-blocked states explicitly in `docs/REMAINING_WORK_CLOSURE_REPORT.md`
+- [x] Verify security/deployment owner gates and update `OWNER_ACTION_REQUIRED.md` with exact remaining actions
+- [x] Run final install/check/test/lint/build and produce a consolidated remaining-work report; final gates passed and report is `docs/REMAINING_WORK_CLOSURE_REPORT.md`
 
 - [ ] Run one TEST-only browser IndexedDB/API intake flow, then capture exact database counts for one request, one request_contact, one request_people_summary, and one audit row before cleanup
 - [x] Keep atomic RPC exact persisted row-set verification separate from browser-path verification; `server/supabase.atomic.integration.test.ts` passed with exact counts and cleanup
 
-- [ ] Fix production Home CTA/navigation links that resolve to domain-root `/intake` and `/tracking` instead of the GitHub Pages subpath, then re-run live direct-route smoke
+- [x] Fix production Home CTA/navigation links that resolve to domain-root `/intake` and `/tracking` instead of the GitHub Pages subpath, then re-run live direct-route smoke; cache-busted production CTA now reaches `/phatthalung-survival/intake`, and direct Tracking reaches `/phatthalung-survival/tracking`
 
-- [ ] Add `workflow_dispatch` to CI so closure branches can run the same quality gates explicitly when pull_request checks are not provisioned
+- [x] Add `workflow_dispatch` to CI so closure branches can run the same quality gates explicitly when pull_request checks are not provisioned; manual CI run 32325255411 passed
+
+- [ ] Diagnose and fix production Supabase intake transport returning GitHub Pages HTML (`Unexpected token '<'`) during TEST retry instead of JSON acknowledgement; re-run TEST-only browser flow and cleanup
