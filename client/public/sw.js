@@ -1,5 +1,7 @@
-const CACHE_NAME = "phatthalung-survival-shell-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest"];
+const CACHE_NAME = "phatthalung-survival-shell-v2";
+const BASE_PATH = new URL("./", self.location).pathname;
+const MANIFEST_PATH = new URL("manifest.webmanifest", self.location).pathname;
+const APP_SHELL = [BASE_PATH, MANIFEST_PATH];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -23,10 +25,8 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
-
   event.respondWith(
     fetch(event.request)
       .then(response => {
@@ -35,7 +35,9 @@ self.addEventListener("fetch", event => {
         return response;
       })
       .catch(() =>
-        caches.match(event.request).then(cached => cached || caches.match("/"))
+        caches
+          .match(event.request)
+          .then(cached => cached || caches.match(BASE_PATH))
       )
   );
 });

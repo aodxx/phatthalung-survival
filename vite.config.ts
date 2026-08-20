@@ -165,7 +165,7 @@ export default defineConfig(({ mode }) => {
     },
   },
   envDir: path.resolve(import.meta.dirname),
-  base: buildEnv.VITE_BASE_PATH || "/",
+  base: process.env.GITHUB_ACTIONS === "true" ? "/phatthalung-survival/" : process.env.VITE_BASE_PATH || "/",
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
