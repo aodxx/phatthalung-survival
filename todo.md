@@ -185,3 +185,4 @@
 - [x] Verify typecheck, 73 tests passed with 2 optional skips, lint, and production build; dev preview was restarted after stale HMR errors
 - [x] Verify fresh-tab Intake offline reload preserves step 1 controls and no application error; retain offline submit/reconnect and attachment upload as separate conditional cases
 - [x] Re-run final regression gates after E2E evidence and Tracking formatting normalization: lint, 70 tests with 2 optional skips, typecheck, and build passed
+- [x] Test GPS permission-cleared browser path and record manual fallback PASS with localized denial message CONDITIONAL when not detected by assertion

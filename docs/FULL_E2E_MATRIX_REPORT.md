@@ -5,3 +5,7 @@ Using a fresh browser tab and a confirmed Intake accessibility snapshot, offline
 ## Final regression gate
 
 After the browser addendum, `Tracking.tsx` formatting was normalized. The final gate passed Prettier/lint, Vitest with 70 passed and 2 skipped tests, TypeScript, and production build. The E2E report remains conditional only for offline submit/reconnect acknowledgement, GPS permission-denied/unavailable, and complete browser attachment pending/retry/READY/download sequencing.
+
+## GPS permission fallback follow-up
+
+With browser permissions cleared, a fresh production Intake route clicked `ใช้ตำแหน่ง GPS`. The page retained the manual-location option, produced no application-error overlay, and had no console error at navigation time. The exact localized GPS failure message was not detected by the simple text assertion, so permission-denied behavior is recorded as **CONDITIONAL** rather than PASS; the manual fallback itself is PASS.

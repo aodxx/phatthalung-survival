@@ -31,3 +31,5 @@ Post-merge GitHub Pages verification (2026-08-20): PR #4 was merged into `main` 
 - Fresh-tab Playwright evidence: Intake offline reload preserved the route and rendered `ขั้นตอน 1 จาก 4`, `จุดเกิดเหตุ`, and `ถัดไป` with no application-error overlay. Offline submit/reconnect acknowledgement and offline attachment upload remain unverified in browser.
 
 - Final regression gate after E2E evidence: Prettier/lint, Vitest 70 passed with 2 optional skips, TypeScript, and production build passed. Tracking formatting was normalized after the evidence append.
+
+- GPS permission follow-up: cleared browser permissions, clicked `ใช้ตำแหน่ง GPS`, manual-location option remained, no application-error overlay and no navigation console error. Exact localized failure text was not detected by the assertion; classify GPS denial as CONDITIONAL and manual fallback as PASS.
