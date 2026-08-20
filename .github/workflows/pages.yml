@@ -47,6 +47,9 @@ jobs:
         run: pnpm build
         env:
           VITE_BASE_PATH: /phatthalung-survival/
+          VITE_RUNTIME_BACKEND: supabase
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Mark artifact as non-Jekyll
         run: touch dist/public/.nojekyll
