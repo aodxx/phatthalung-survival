@@ -13,7 +13,6 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import AttachmentUploader from "@/components/AttachmentUploader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
