@@ -221,3 +221,5 @@
 - [x] Keep atomic RPC exact persisted row-set verification separate from browser-path verification; `server/supabase.atomic.integration.test.ts` passed with exact counts and cleanup
 
 - [ ] Fix production Home CTA/navigation links that resolve to domain-root `/intake` and `/tracking` instead of the GitHub Pages subpath, then re-run live direct-route smoke
+
+- [ ] Add `workflow_dispatch` to CI so closure branches can run the same quality gates explicitly when pull_request checks are not provisioned
