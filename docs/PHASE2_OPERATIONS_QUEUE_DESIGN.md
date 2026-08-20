@@ -73,3 +73,9 @@ pagination:
 ## Owner actions ก่อน production
 
 การเปิดใช้ Phase 2 จริงยังต้องมีการ bootstrap staff profile/role/zone ใน Supabase, ยืนยัน policy ของแต่ละ role, ตั้งค่า retention และตรวจ RLS กับข้อมูล production โดย owner งานเหล่านี้ต้องอยู่ใน `OWNER_ACTION_REQUIRED.md` และไม่ควรใช้ seed หรือ mock operational data ใน production
+
+## สถานะ implementation รอบ Phase 2 kickoff
+
+ณ วันที่ 20 สิงหาคม 2026 มีการวาง implementation boundary ลงใน codebase แล้ว ได้แก่ `server/operations.ts` สำหรับ bounded queue query, role/zone enforcement และ deterministic sorting; audited RPCs สำหรับ request/incident transition, mission assignment และ mission lifecycle; `client/src/pages/Operations.tsx` สำหรับ mobile-first queue UI; และ `/operations` route ที่รองรับ GitHub Pages subpath ผ่าน `BASE_URL` นอกจากนี้ production Supabase project `ulawoqswzqfpqyssxggn` ได้รับ migration `phase2_operations` แล้ว โดย RPCs เปิด execute เฉพาะ `service_role` และบันทึก audit ใน transaction เดียวกับ mutation
+
+Contract tests ครอบคลุม queue ordering, same-zone/other-zone access, role denial, transition guards, completion-result requirement และ fail-closed database behavior โดยไม่สร้างข้อมูล production ทั้งนี้การใช้งานจริงยังขึ้นกับการ bootstrap `auth.users` และ `user_profiles` ของเจ้าหน้าที่, การกำหนด `zone_id`, การยืนยัน role policy รายหน่วยงาน และการทดสอบ browser session ของ staff ตามรายการใน `OWNER_ACTION_REQUIRED.md`

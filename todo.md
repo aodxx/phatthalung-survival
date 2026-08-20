@@ -25,10 +25,10 @@
 - [x] IndexedDB offline-first local queue with retry, exponential backoff, jitter, idempotency, and runtime drain on app start/online events via controlled intake mutation
 - [x] Controlled server acknowledgement, Case ID, hashed tracking token, and public-safe tracking; Supabase production transport, public tracking read path, and live TEST evidence are implemented, with browser reconnect cases tracked separately
 - [x] Optional attachment upload after Request creation; UI, controlled route, private storage boundary, offline queue, validation, audit, live READY/idempotency/download evidence, and cleanup are implemented; browser UI lifecycle remains separately conditional
-- [ ] Staff authentication, role-based access, and zone-aware access
-- [ ] Operations queue with status/priority/zone/unassigned filters and P1 → waiting time → created_at sorting
-- [ ] Incident triage, verification, duplicate candidates, priority P1–P4, human override, and audit reason
-- [ ] Mission assignment and field lifecycle ASSIGNED → ACCEPTED → EN_ROUTE → ON_SCENE → COMPLETED with audit logging
+- [x] Staff authentication, role-based access, and zone-aware access boundary implemented with Supabase bearer forwarding, server role/zone enforcement, and owner bootstrap gate documented in OWNER_ACTION_REQUIRED.md
+- [x] Operations queue with bounded server-side status/priority/zone/unassigned filters and deterministic P1 → waiting time → created_at sorting, tRPC contract, mobile `/operations` route, and loading/empty/error states
+- [x] Incident triage transition guards, verification lifecycle, priority P1–P4 human override RPC, duplicate-candidate decision RPC, role checks, and audit reason contract implemented; production staff bootstrap remains owner-gated
+- [x] Mission assignment and field lifecycle ASSIGNED → ACCEPTED → EN_ROUTE → ON_SCENE → COMPLETED with role/zone enforcement, required completion result, audited RPC, and contract tests
 
 ## Owner action tracking
 
@@ -222,3 +222,16 @@
 - [x] Fix Tracking empty-state condition to use normalized production/preview `data`, `isLoading`, and `error` instead of legacy `lookup.*`; local typecheck/lint/70 tests/build passed, and live smoke follows deployment
 
 - [x] Format newly checked-in Edge Function source and closure documentation, then rerun diff/check/lint/test/build before final checkpoint; all passed with 70 tests and 2 optional skips
+
+## Phase 2 implementation follow-up
+
+- [x] Implement bounded server-side Operations Queue query with role/zone enforcement and deterministic priority/waiting-time ordering; Supabase `phase2_operations` migration applied
+- [x] Implement audited Request/Incident triage transitions, priority override, and duplicate-candidate decision contracts with persisted transition guards
+- [x] Implement audited Mission assignment/status lifecycle contracts with role/zone enforcement and completion-result validation
+- [x] Add Phase 2 contract tests with no seeded production data and document owner bootstrap gate; 9 Phase 2 tests pass and owner checklist updated
+
+## Phase 2 correctness follow-up
+
+- [x] Add status and zone filter controls to `/operations` and move queue ordering/pagination into authoritative `phase2_operations_queue` Supabase RPC; no Node-side 500-row fetch remains
+- [x] Enforce persisted request/incident/mission current-status transition guards inside Supabase RPCs; adapters no longer accept previousStatus from client and contract tests pass
+- [x] Implement duplicate-candidate triage decision RPC/router with CONFIRMED/REJECTED/IGNORED decisions, required reason, role boundary, and audit metadata; 9 Phase 2 contract tests pass

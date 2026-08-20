@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import { startLogin } from "./const";
+import { getSupabaseBrowserClient } from "./lib/supabase";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -43,7 +44,13 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      headers() {
+      async headers() {
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) {
+          const { data } = await supabase.auth.getSession();
+          const accessToken = data.session?.access_token;
+          if (accessToken) return { Authorization: `Bearer ${accessToken}` };
+        }
         // Preview auto-login fallback: when the browser blocks iframe cookies
         // (Safari ITP / private browsing / WebView), the runtime mirrors the
         // session into sessionStorage so we can forward it as a Bearer token.

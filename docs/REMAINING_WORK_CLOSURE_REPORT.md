@@ -34,7 +34,7 @@
 
 ## งานที่ยังไม่ควรปิดเป็น “เสร็จสมบูรณ์”
 
-รายการ Staff authentication/zone bootstrap, Operations Queue, Incident Triage และ Mission lifecycle เป็น **Phase 2 product work** และยังไม่ได้ implement เป็น production feature ตาม Blueprint/PRD จึงคงสถานะ pending ใน `todo.md` ต่อไป
+Staff authentication boundary, Operations Queue, Incident Triage transition/priority/duplicate-candidate contracts และ Mission lifecycle contracts ถูก implement ใน Phase 2 kickoff แล้ว พร้อม migration/RPC และ contract tests; การ bootstrap staff identities/roles/zones และ browser verification ด้วยบัญชีจริงยังเป็น owner-gated activation work และถูกระบุแยกใน `todo.md`/`OWNER_ACTION_REQUIRED.md`
 
 การ browser verification ที่ต้องใช้ exact database counts จาก flow IndexedDB จริงยังไม่ควรอ้างว่าเสร็จ เพราะการตรวจ exact persisted row set ที่ผ่านเป็น atomic Supabase integration path แยกจาก browser path การแยกนี้ถูกบันทึกไว้เพื่อป้องกันการ overclaim
 
@@ -57,3 +57,9 @@ The production Tracking page now uses `lookupPublicTrackingProduction` and `down
 A cache-busted browser TEST acknowledgement for Case ID `PTL-2026-2YUW5W` returned the tracking credentials and its success link rendered `/phatthalung-survival/tracking`. The corresponding TEST request ID was `d1a51c4c-f01e-4801-9ade-117cddc26b19`, with one request row, one `request_contacts` row, one `request_people_summary` row, and one `audit_logs` row verified through limited read-only queries. Supabase function logs show the browser reached `public-tracking` with POST 200 and JSON content. One later browser lookup displayed the sanitized no-match state for this historical fixture, so that data/fixture consistency caveat remains explicit rather than being overclaimed as a complete lookup PASS.
 
 The exact deployed Edge Function sources are now checked into `supabase/functions/`: `public-intake` version 2 SHA-256 `010ee6b9f4ee61a8415148e40e7196a5c01d8a554f27a6c77cb43af658ab3fa2`, `public-tracking` version 1 SHA-256 `8dade9ebd689d742ea648d319b51d1468772ea6253cd9ce8f91a56d1a7413ebe`, `public-attachment-upload` version 1 SHA-256 `6527127b2cd35492863d6eb38720c03946aa7bbf43029d7e7e475432bc7f1a90`, and `public-attachment-download` version 1 SHA-256 `f2fbe7f762ab0ebb7e3fee39baaa0d20f662eec90c0851b53afbad692cd3d86e`.
+
+## Phase 2 correctness closure — 20 August 2026
+
+The Phase 2 kickoff was hardened after review identified three correctness gaps. The Operations Queue now uses the Supabase `phase2_operations_queue` RPC for role/zone enforcement, status/priority/zone/unassigned filters, deterministic priority/waiting-time/created ordering, and bounded limit/offset pagination; the `/operations` page exposes the status and zone controls. Request, Incident, and Mission RPCs now lock the current row and validate the persisted status transition before mutation, while tRPC adapters no longer accept `previousStatus` from the client. Duplicate-candidate decisions now support `CONFIRMED`, `REJECTED`, and `IGNORED` with a required reason and audit metadata. The migrations `phase2_operations`, `phase2_priority_override`, `phase2_queue_authority`, and `phase2_correctness` were applied to Supabase project `ulawoqswzqfpqyssxggn`.
+
+The local verification after this hardening passed typecheck and nine Phase 2 contract tests. A complete repository gate is run before the checkpoint. Staff Auth bootstrap, real staff browser session verification, malware scanning/rate limiting, and full browser attachment lifecycle remain owner/environment gates and are not represented as passed by this closure.

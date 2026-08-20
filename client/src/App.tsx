@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Intake from "./pages/Intake";
 import QueueRuntime from "./components/QueueRuntime";
 import Tracking from "./pages/Tracking";
+import Operations from "./pages/Operations";
 
 function Router() {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -18,6 +19,7 @@ function Router() {
       <Route path={route("/")} component={Home} />
       <Route path={route("/intake")} component={Intake} />
       <Route path={route("/tracking")} component={Tracking} />
+      <Route path={route("/operations")} component={Operations} />
       <Route path={route("/404")} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

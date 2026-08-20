@@ -70,3 +70,11 @@
 ## 9. ตั้งค่า GitHub Actions secrets สำหรับ Supabase production frontend
 
 สถานะ **เสร็จแล้วตามที่ owner ยืนยัน**: repository secrets `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ถูกตั้งค่าใน `aodxx/phatthalung-survival` และ Pages workflow runs `32325960656`/`32325960697` ผ่าน โดย build ใช้ `VITE_RUNTIME_BACKEND=supabase`; ไม่มี secret ถูก commit หรือฝังใน source
+
+## 9. Owner gate ก่อนเปิดใช้ Phase 2 Operations
+
+โค้ด Phase 2 มี queue query, role/zone enforcement, audited RPCs และ Operations route แล้ว แต่ยังไม่ควรเปิด workflow ปฏิบัติการจริงจนกว่าเจ้าของระบบจะสร้าง staff users ใน Supabase Auth และเพิ่ม `user_profiles` ที่มี `role_code`, `zone_id` และ `active = true` ตาม policy ขององค์กร งานนี้ต้องทำกับบัญชีจริงที่ได้รับอนุญาตเท่านั้น ห้ามใช้ TEST fixture หรือ mock operational data ใน production
+
+เจ้าของระบบต้องยืนยัน matrix สิทธิ์ของ `ADMIN`, `COMMANDER`, `TRIAGE`, `OPERATIONS`, `FIELD` และ `VIEWER`, รวมถึงกำหนดว่าบทบาทใดเห็นข้อมูลข้ามโซนได้ จากนั้นจึงให้ทดสอบ browser session ด้วย access token จริงในหน้า `/operations`: queue ต้องแสดงเฉพาะ zone ที่ได้รับอนุญาต, role ที่ไม่มีสิทธิ์ต้องได้สถานะปฏิเสธ, และ mutation ทุกชนิดต้องมีเหตุผลพร้อม audit row
+
+Migration `phase2_operations` ถูก apply ใน Supabase project `ulawoqswzqfpqyssxggn` แล้ว โดย RPC เหล่านี้เปิด execute ให้เฉพาะ `service_role`; frontend ห้ามเรียก RPC โดยตรงและห้ามเก็บ service-role key ไว้ใน Pages bundle

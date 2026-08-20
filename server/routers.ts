@@ -17,6 +17,16 @@ import { lookupPublicTracking } from "./tracking";
 import { getPublicAttachmentDownload } from "./attachments";
 import { isValidThaiPhone, normalizeThaiPhone } from "./phone";
 import { z } from "zod";
+import {
+  assignMission,
+  decideDuplicateCandidate,
+  listOperationsQueue,
+  overrideIncidentPriority,
+  transitionIncident,
+  transitionMission,
+  transitionRequest,
+} from "./operations";
+import { PRIORITY_LEVELS } from "../shared/emergency";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -124,6 +134,86 @@ export const appRouter = router({
       requiredCredentials: "case-code-and-secure-tracking-token" as const,
       publicFieldsOnly: true as const,
     })),
+  }),
+
+  operations: router({
+    queue: roleProcedure([
+      "ADMIN",
+      "COMMANDER",
+      "INTAKE",
+      "TRIAGE",
+      "OPERATIONS",
+      "VIEWER",
+    ])
+      .input(
+        z.object({
+          status: z.array(z.string()).max(10).optional(),
+          priority: z.enum(PRIORITY_LEVELS).optional(),
+          zoneId: z.string().uuid().optional(),
+          unassigned: z.boolean().optional(),
+          search: z.string().trim().max(80).optional(),
+          limit: z.number().int().min(1).max(100).default(25),
+          offset: z.number().int().min(0).default(0),
+        })
+      )
+      .query(({ ctx, input }) => listOperationsQueue(ctx.staff, input)),
+    requestStatus: roleProcedure(["ADMIN", "COMMANDER", "TRIAGE"])
+      .input(
+        z.object({
+          requestId: z.string(),
+          nextStatus: z.string(),
+          reason: z.string().trim().min(1).max(1000),
+        })
+      )
+      .mutation(({ ctx, input }) => transitionRequest(input, ctx.staff)),
+    duplicateDecision: roleProcedure(["ADMIN", "COMMANDER", "TRIAGE"])
+      .input(
+        z.object({
+          candidateId: z.string(),
+          decision: z.enum(["CONFIRMED", "REJECTED", "IGNORED"]),
+          reason: z.string().trim().min(1).max(1000),
+        })
+      )
+      .mutation(({ ctx, input }) => decideDuplicateCandidate(input, ctx.staff)),
+    incidentPriority: roleProcedure(["ADMIN", "COMMANDER", "TRIAGE"])
+      .input(
+        z.object({
+          incidentId: z.string(),
+          priority: z.enum(PRIORITY_LEVELS),
+          reason: z.string().trim().min(1).max(1000),
+        })
+      )
+      .mutation(({ ctx, input }) => overrideIncidentPriority(input, ctx.staff)),
+    incidentStatus: roleProcedure(["ADMIN", "COMMANDER", "TRIAGE"])
+      .input(
+        z.object({
+          incidentId: z.string(),
+          nextStatus: z.string(),
+          reason: z.string().trim().min(1).max(1000),
+        })
+      )
+      .mutation(({ ctx, input }) => transitionIncident(input, ctx.staff)),
+    missionAssign: roleProcedure(["ADMIN", "COMMANDER", "OPERATIONS"])
+      .input(
+        z.object({
+          incidentId: z.string(),
+          teamId: z.string(),
+          objective: z.string().trim().min(1).max(1000),
+          priority: z.enum(PRIORITY_LEVELS),
+          reason: z.string().trim().min(1).max(1000),
+        })
+      )
+      .mutation(({ ctx, input }) => assignMission(input, ctx.staff)),
+    missionStatus: roleProcedure(["ADMIN", "COMMANDER", "OPERATIONS", "FIELD"])
+      .input(
+        z.object({
+          missionId: z.string(),
+          nextStatus: z.string(),
+          reason: z.string().trim().min(1).max(1000),
+          result: z.string().trim().max(2000).optional(),
+        })
+      )
+      .mutation(({ ctx, input }) => transitionMission(input, ctx.staff)),
   }),
 
   // TODO: add feature routers here, e.g.
