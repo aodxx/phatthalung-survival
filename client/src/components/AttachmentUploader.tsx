@@ -8,6 +8,10 @@ import {
   enqueueAttachment,
   type AttachmentQueueItem,
 } from "@/lib/attachmentQueue";
+import {
+  isSupabaseProductionRuntime,
+  uploadPublicAttachmentProduction,
+} from "@/lib/publicApi";
 import { CheckCircle2, FilePlus2, Loader2, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -32,6 +36,17 @@ async function postAttachment(item: {
   caseCode: string;
   trackingToken: string;
 }) {
+  if (isSupabaseProductionRuntime()) {
+    return uploadPublicAttachmentProduction({
+      clientAttachmentId: item.id,
+      fileName: item.fileName,
+      mimeType: item.mimeType,
+      file: item.blob,
+      caseCode: item.caseCode,
+      trackingToken: item.trackingToken,
+    });
+  }
+
   const response = await fetch("/api/public/attachments", {
     method: "POST",
     headers: {

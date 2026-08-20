@@ -241,3 +241,7 @@
 - [ ] Complete real browser attachment UI verification in one valid TEST Case ID/token session, or retain as conditional if file-picker/network controls are unavailable
 - [x] Complete broader mobile/deployment smoke beyond Tracking-only proof for the Phase 0 exit gate; production Home, Intake, Tracking, and Operations mobile snapshots are recorded, with Pages direct-route HTTP 404 fallback and unauthenticated Operations query classified as CONDITIONAL
 - [ ] Separate attachment security owner actions (malware scanning, rate limiting, retention) from completed contract coverage and obtain owner approval
+
+## Production attachment transport gap
+
+- [ ] Route AttachmentUploader upload/drain through the Supabase production Edge Function adapter instead of relative GitHub Pages `/api/public/attachments`, then rerun live TEST READY/download/cleanup evidence
