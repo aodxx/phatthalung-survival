@@ -65,7 +65,7 @@
 - [x] Narrow attachment route test reporting to statuses proven in this environment: HTTP 400/404/503 plus unit-tested 409/413 mappings; no unsafe production/test data was inserted
 - [ ] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
 - [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
-- [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: tracking metadata/download boundary exists, but valid Case ID/token runtime flow remains pending
+- [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: API boundary and isolated authorized download tests pass, but full browser flow from acknowledged Case ID/token to public attachment download remains pending
 - [ ] Capture runtime UI verification for attachment selection, pending/offline, retry, success, and failure states when preview is available
 - [x] Add a public-safe attachment metadata/download path after tracking lookup; return only READY metadata, never expose storage paths in tracking data, and require Case ID + tracking token for signed URL access
 - [x] Add unit/HTTP contract tests for authorized attachment listing/download and denied access without valid Case ID + token using injected fake Supabase/storage boundaries; no production/test data inserted
@@ -85,7 +85,7 @@
 - [x] P0-9: Wire production Supabase Auth Bearer + user_profiles.role_code/zone_id into server context and staff authorization, with Manus fallback documented as preview adapter
 - [x] P0-10: Implement and execute real Supabase RLS zone tests for same-zone allowed, other-zone denied, unauthorized role denied, and admin override; field assignment-aware policy also passed
 - [x] P1-1: Add citizen queue status/acknowledgement UI and manual retry action for pending, sending, sent, and failed requests without requiring DevTools
-- [ ] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data
+- [x] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data; conditional browser cases are explicitly recorded in the E2E report
 - [x] Add and run a real Supabase-backed rollback test for submit_public_intake_atomic using `RUN_SUPABASE_INTEGRATION=true`; failed child insert returned an error and left no request/audit rows
 - [x] Fix duplicate intake RPC so ALREADY_RECEIVED never returns a newly generated tracking token, and add a real concurrent DB race test with unique IDs and cleanup
 - [x] Derive public tracking status from incident/mission lifecycle with tests for REVIEWING/ASSIGNED/EN_ROUTE/ON_SCENE/RESOLVED; mission fixture covers EN_ROUTE/ON_SCENE/COMPLETED→RESOLVED
@@ -102,14 +102,14 @@
 - [x] Create reproducible TEST-only Supabase fixture/script with exact TEST_ZONE_A and TEST_ZONE_B, fail-closed cleanup, post-cleanup zero-row/Auth verification, and no real citizen data; runner is `scripts/verify-supabase-test-fixture.mjs`
 - [x] Prepare TEST staff Auth/profile fixture for ADMIN, TRIAGE A/B, and FIELD A/B; runner creates confirmed Auth users/profiles with `.invalid` emails and deletes them in finally
 - [x] Run real Supabase RLS tests: same-zone allowed, other-zone denied, wrong-role denied, unassigned FIELD denied, ADMIN allowed; all five assertions passed and fail-closed cleanup/post-cleanup verification passed
-- [ ] Run TEST Citizen Intake through IndexedDB/API/atomic PostgreSQL acknowledgement and verify one request, contact, people summary, and audit
+- [x] Run TEST Citizen Intake through IndexedDB/API/atomic PostgreSQL acknowledgement and verify exact persisted set: one request, one request_contact, one request_people_summary, and one audit row; integration test passed with cleanup
 - [ ] Verify TEST Case ID/tracking token delivery, correct tracking success, wrong-token denial, and duplicate clientRequestId returns original Case
 - [x] Verify TEST attachment upload from post-Request through READY and authorized download, with fail-closed cleanup and post-cleanup verification; all exact TEST request/attachment/contact/people/audit counts returned zero after cleanup
 - [ ] Run preview smoke matrix: Home, Intake, GPS fallback, offline submit, reconnect, acknowledgement, tracking, wrong token, attachment, mobile, PWA, HTTPS, refresh/direct routes
 - [x] Produce PHASE 0/1 FINAL VERIFICATION report and make READY FOR PHASE 2 decision strictly from evidence; report decision is CONDITIONAL pending offline/restart and deployment smoke
 - [x] Fix shared IndexedDB version coordination: offline request queue opens `phatthalung-survival` at version 1 while attachment queue opens the same database at version 2, causing browser `VersionError` during attachment verification and interrupting offline/attachment retry behavior.
 - [x] Re-run TEST attachment upload/download verification after IndexedDB fix and record READY evidence.
-- [ ] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report.
+- [x] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report; remaining conditional cases are recorded in `docs/FULL_E2E_MATRIX_REPORT.md`.
 
 ## GitHub Pages Deployment Recovery
 
@@ -186,3 +186,7 @@
 - [x] Verify fresh-tab Intake offline reload preserves step 1 controls and no application error; retain offline submit/reconnect and attachment upload as separate conditional cases
 - [x] Re-run final regression gates after E2E evidence and Tracking formatting normalization: lint, 70 tests with 2 optional skips, typecheck, and build passed
 - [x] Test GPS permission-cleared browser path and record manual fallback PASS with localized denial message CONDITIONAL when not detected by assertion
+
+- [ ] Fix current dev-server parse error caused by duplicate `Skeleton` declaration in `client/src/pages/Tracking.tsx`, then rerun preview quality gates
+- [x] Restore exact TEST intake row-set evidence for one request, one contact, one people summary, and one audit row before marking that verification complete; `server/supabase.atomic.integration.test.ts` passed with cleanup
+- [ ] Clarify attachment/tracking rollout status: either document explicit decoupling evidence or re-test the real acknowledged Case ID + token browser flow end to end before closing the item
