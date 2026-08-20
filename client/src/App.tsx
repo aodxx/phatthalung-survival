@@ -8,10 +8,10 @@ import Home from "./pages/Home";
 import Intake from "./pages/Intake";
 import QueueRuntime from "./components/QueueRuntime";
 import Tracking from "./pages/Tracking";
-import { getRoutePath } from "@/lib/routing";
 
 function Router() {
-  const route = (path: string) => getRoutePath(import.meta.env.BASE_URL, path);
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const route = (path: string) => `${base}${path}` || "/";
 
   return (
     <Switch>

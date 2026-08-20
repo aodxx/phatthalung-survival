@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-cd /home/ubuntu/phatthalung-survival
-body='This draft PR adds the evidence-based GitHub Pages + Supabase migration audit. It covers every server module, all client API calls, Manus/tRPC coupling, Supabase Auth/RLS/Storage boundaries, Vite/PWA base-path risks, CORS/Auth redirects, secret exposure, GitHub Actions readiness, migration blockers, owner actions and acceptance gates. Validation: pnpm check passed; 70 tests passed with 2 optional Supabase integration tests skipped; lint passed; build passed with an existing bundle-size warning. Readiness: ready to start migration implementation on this branch, not ready to deploy to GitHub Pages, and not ready to disable Manus Hosting. Do not merge or disable Manus Hosting from this audit PR. See docs/GITHUB_PAGES_SUPABASE_MIGRATION_AUDIT.md. Requested target: https://aodxx.github.io/phatthalung-survival/'
-gh pr create --repo aodxx/phatthalung-survival --base main --head agent/github-pages-supabase-migration --title 'docs: audit GitHub Pages + Supabase migration' --body "$body" --draft
