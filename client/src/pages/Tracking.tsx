@@ -8,27 +8,68 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import AttachmentUploader from "@/components/AttachmentUploader";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  downloadPublicAttachmentProduction,
+  isSupabaseProductionRuntime,
+  lookupPublicTrackingProduction,
+} from "@/lib/publicApi";
+import { getRoutePath } from "@/lib/routing";
 
 export default function Tracking() {
+  const route = (path: string) => getRoutePath(import.meta.env.BASE_URL, path);
+  const isProduction = isSupabaseProductionRuntime();
   const [caseCode, setCaseCode] = useState("");
   const [trackingToken, setTrackingToken] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const utils = trpc.useUtils();
+  const [productionData, setProductionData] = useState<Awaited<
+    ReturnType<typeof lookupPublicTrackingProduction>
+  > | null>(null);
+  const [productionError, setProductionError] = useState<Error | null>(null);
+  const [productionLoading, setProductionLoading] = useState(false);
   const input = useMemo(
     () => ({ caseCode, trackingToken }),
     [caseCode, trackingToken]
   );
   const lookup = trpc.tracking.lookup.useQuery(input, {
-    enabled: submitted,
+    enabled: submitted && !isProduction,
     retry: false,
   });
+
+  useEffect(() => {
+    if (!isProduction || !submitted) return;
+    let active = true;
+    setProductionLoading(true);
+    setProductionError(null);
+    setProductionData(null);
+    void lookupPublicTrackingProduction(input)
+      .then(data => {
+        if (active) setProductionData(data);
+      })
+      .catch(error => {
+        if (active)
+          setProductionError(
+            error instanceof Error ? error : new Error("Tracking lookup failed")
+          );
+      })
+      .finally(() => {
+        if (active) setProductionLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [input, isProduction, submitted]);
+
+  const data = isProduction ? productionData : lookup.data;
+  const isLoading = isProduction ? productionLoading : lookup.isLoading;
+  const error = isProduction ? productionError : lookup.error;
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -40,13 +81,19 @@ export default function Tracking() {
     setDownloadingId(attachmentId);
     setDownloadError(null);
     try {
-      const result = await utils.attachments.download.fetch({
-        caseCode,
-        trackingToken,
-        attachmentId,
-      });
+      const result = isProduction
+        ? await downloadPublicAttachmentProduction({
+            caseCode,
+            trackingToken,
+            attachmentId,
+          })
+        : await utils.attachments.download.fetch({
+            caseCode,
+            trackingToken,
+            attachmentId,
+          });
       const link = document.createElement("a");
-      link.href = result.url;
+      link.href = "signedUrl" in result ? result.signedUrl : result.url;
       link.target = "_blank";
       link.rel = "noreferrer";
       link.download = fileName;
@@ -62,7 +109,7 @@ export default function Tracking() {
     <main className="min-h-screen bg-[#f7f9fc] px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-xl">
         <Link
-          href="/"
+          href={route("/")}
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-4" /> หน้าแรก
@@ -115,7 +162,7 @@ export default function Tracking() {
               <Search className="mr-2 size-4" /> ตรวจสอบสถานะ
             </Button>
           </form>
-          {submitted && lookup.isLoading && (
+          {submitted && isLoading && (
             <section
               className="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5"
               role="status"
@@ -139,7 +186,7 @@ export default function Tracking() {
               </div>
             </section>
           )}
-          {submitted && lookup.error && (
+          {submitted && error && (
             <div
               className="mt-6 rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-800"
               role="alert"
@@ -148,22 +195,22 @@ export default function Tracking() {
               หรือโทรเบอร์ฉุกเฉินหากมีอันตรายเร่งด่วน
             </div>
           )}
-          {submitted && !lookup.isLoading && !lookup.error && lookup.data && (
+          {submitted && !isLoading && !error && data && (
             <>
               <div className="mt-6 rounded-2xl border border-cyan-100 bg-cyan-50 p-5">
                 <div className="flex items-center gap-2 text-cyan-900">
                   <ShieldCheck className="size-5" />
-                  <span className="font-extrabold">{lookup.data.caseCode}</span>
+                  <span className="font-extrabold">{data.caseCode}</span>
                 </div>
                 <p className="mt-4 text-sm text-slate-700">
-                  สถานะคำร้อง: <strong>{lookup.data.status}</strong>
+                  สถานะคำร้อง: <strong>{data.status}</strong>
                 </p>
                 <p className="mt-1 text-xs text-slate-600">
                   รับเรื่องเมื่อ{" "}
-                  {new Date(lookup.data.receivedAt).toLocaleString("th-TH")}
+                  {new Date(data.receivedAt).toLocaleString("th-TH")}
                 </p>
               </div>
-              {lookup.data.attachments.length > 0 && (
+              {data.attachments.length > 0 && (
                 <section
                   className="mt-6 rounded-2xl border border-slate-200 bg-white p-5"
                   aria-labelledby="uploaded-attachments-heading"
@@ -183,7 +230,7 @@ export default function Tracking() {
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
-                    {lookup.data.attachments.map(attachment => (
+                    {data.attachments.map(attachment => (
                       <div
                         key={attachment.attachmentId}
                         className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"
@@ -232,7 +279,7 @@ export default function Tracking() {
                 </section>
               )}
               <AttachmentUploader
-                caseCode={lookup.data.caseCode}
+                caseCode={data.caseCode}
                 trackingToken={trackingToken}
               />
             </>

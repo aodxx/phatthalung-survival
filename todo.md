@@ -226,4 +226,4 @@
 
 - [ ] Diagnose and fix production Supabase intake transport returning GitHub Pages HTML (`Unexpected token '<'`) during TEST retry instead of JSON acknowledgement; re-run TEST-only browser flow and cleanup
 
-- [x] Fix Intake success `ติดตามเคสนี้` link that still resolves to domain-root `/tracking` on GitHub Pages, then rerun TEST acknowledgement/tracking smoke; source uses `getRoutePath(import.meta.env.BASE_URL, ...)` and local check/lint/test/build passed; live smoke follows deployment
+- [x] Wire Tracking page lookup and attachment download through the runtime-gated Supabase/Manus public adapter; remove production dependence on `/api/trpc`; local typecheck/lint/70 tests/build passed, and live TEST smoke follows deployment
