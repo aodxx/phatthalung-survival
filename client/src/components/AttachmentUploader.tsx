@@ -13,7 +13,7 @@ import {
   uploadPublicAttachmentProduction,
 } from "@/lib/publicApi";
 import { CheckCircle2, FilePlus2, Loader2, XCircle } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type UploadState =
   | "READY"
@@ -71,39 +71,49 @@ export default function AttachmentUploader({
   trackingToken: string;
 }) {
   const [items, setItems] = useState<UploadItem[]>([]);
+  const drainLock = useRef<Promise<void> | null>(null);
 
   const drainPending = useCallback(
     async (force = false) => {
-      const results = await drainAttachmentQueue(
-        async (item: AttachmentQueueItem) => {
-          await postAttachment({
-            id: item.clientAttachmentId,
-            fileName: item.fileName,
-            mimeType: item.mimeType,
-            blob: item.blob,
-            caseCode: item.caseCode,
-            trackingToken: item.trackingToken,
-          });
-          return { acknowledged: true };
-        },
-        Date.now(),
-        force
-      );
-      setItems(current =>
-        current.map(entry => {
-          const result = results.find(
-            candidate => candidate.clientAttachmentId === entry.id
-          );
-          if (!result) return entry;
-          return result.status === "READY"
-            ? { ...entry, state: "READY_SERVER", message: undefined }
-            : {
-                ...entry,
-                state: "PENDING",
-                message: "บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
-              };
-        })
-      );
+      if (drainLock.current) return drainLock.current;
+      const run = (async () => {
+        const results = await drainAttachmentQueue(
+          async (item: AttachmentQueueItem) => {
+            await postAttachment({
+              id: item.clientAttachmentId,
+              fileName: item.fileName,
+              mimeType: item.mimeType,
+              blob: item.blob,
+              caseCode: item.caseCode,
+              trackingToken: item.trackingToken,
+            });
+            return { acknowledged: true };
+          },
+          Date.now(),
+          force
+        );
+        setItems(current =>
+          current.map(entry => {
+            const result = results.find(
+              candidate => candidate.clientAttachmentId === entry.id
+            );
+            if (!result) return entry;
+            return result.status === "READY"
+              ? { ...entry, state: "READY_SERVER", message: undefined }
+              : {
+                  ...entry,
+                  state: "PENDING",
+                  message: "บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
+                };
+          })
+        );
+      })();
+      drainLock.current = run;
+      try {
+        await run;
+      } finally {
+        if (drainLock.current === run) drainLock.current = null;
+      }
     },
     [caseCode, trackingToken]
   );

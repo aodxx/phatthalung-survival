@@ -249,3 +249,5 @@
 - [x] Allow repeated Tracking submit with unchanged Case ID/token to refetch production metadata after attachment upload; 77ff419 live smoke showed READY listing and public signed download, followed by exact TEST cleanup
 
 - [ ] Make attachment online reconnect drain override the retry backoff for an item queued by the immediately preceding offline upload, add regression coverage, and rerun controlled browser pending→READY evidence
+
+- [ ] Serialize AttachmentUploader drain calls so initial load and browser online events cannot concurrently reprocess the same IndexedDB item or leave it UPLOADING
