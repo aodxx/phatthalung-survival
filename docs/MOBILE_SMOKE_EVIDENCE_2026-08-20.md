@@ -6,8 +6,6 @@ A separate Playwright production session loaded `https://aodxx.github.io/phattha
 
 This is PASS for production Home mobile shell and CONDITIONAL for the broader managed-preview multi-route smoke until a stable preview URL or additional production route snapshots are available.
 
-
 The production browser direct navigation to `/phatthalung-survival/intake` returned HTTP 404 at the network layer, but GitHub Pages served the SPA fallback and the React Intake shell rendered at 390x844. The snapshot showed the Home link scoped to `/phatthalung-survival/`, step 1/4, location controls, and enabled Next/disabled Back buttons. Console errors were zero. This is classified as a **conditional Pages fallback** result: application navigation works, but the deployment should ideally return a 200 document response for direct routes if the hosting configuration can provide it.
-
 
 The production direct route `/phatthalung-survival/operations` returned HTTP 404 and rendered the app's `404 / Page Not Found` screen at 390x844, with zero console errors. This is a real deployment blocker for the new Phase 2 route: the current GitHub Pages artifact does not expose Operations through the deployed SPA fallback even though the local route is registered. The Operations production route must be deployed/rechecked before it can be claimed as live.
