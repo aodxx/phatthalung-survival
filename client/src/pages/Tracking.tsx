@@ -12,6 +12,8 @@ import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import AttachmentUploader from "@/components/AttachmentUploader";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
@@ -115,10 +117,25 @@ export default function Tracking() {
             </Button>
           </form>
           {submitted && lookup.isLoading && (
-            <div className="mt-6 flex items-center gap-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-              <Loader2 className="size-4 animate-spin" />
-              กำลังตรวจสอบโดยไม่เปิดเผยข้อมูลส่วนตัว
-            </div>
+            <section
+              className="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+              aria-label="กำลังตรวจสอบสถานะเคส"
+            >
+              <div className="flex items-center gap-3">
+                <Loader2 className="size-5 animate-spin text-cyan-700" aria-hidden="true" />
+                <p className="text-sm font-bold text-slate-700">
+                  กำลังตรวจสอบโดยไม่เปิดเผยข้อมูลส่วนตัว
+                </p>
+              </div>
+              <div className="space-y-3" aria-hidden="true">
+                <Skeleton className="h-5 w-2/5 rounded-lg bg-slate-200" />
+                <Skeleton className="h-4 w-4/5 rounded-lg bg-slate-200" />
+                <Skeleton className="h-4 w-3/5 rounded-lg bg-slate-200" />
+              </div>
+            </section>
           )}
           {submitted && lookup.error && (
             <div

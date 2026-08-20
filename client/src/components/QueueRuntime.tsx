@@ -1,23 +1,14 @@
 import { useEffect } from "react";
 import { drainQueue } from "@/lib/offlineQueue";
 import { trpc } from "@/lib/trpc";
-import {
-  isSupabaseProductionRuntime,
-  submitPublicIntakeProduction,
-} from "@/lib/publicApi";
 
 export default function QueueRuntime() {
   const { mutateAsync } = trpc.intake.submit.useMutation();
 
-  const sendItem = async (item: Parameters<typeof mutateAsync>[0]) =>
-    isSupabaseProductionRuntime()
-      ? submitPublicIntakeProduction(item)
-      : mutateAsync(item);
-
   useEffect(() => {
     const flush = async () => {
       const results = await drainQueue(async item => {
-        const response = await sendItem(item);
+        const response = await mutateAsync(item);
         return {
           acknowledged:
             response.status === "RECEIVED" ||
