@@ -13,7 +13,6 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import AttachmentUploader from "@/components/AttachmentUploader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
@@ -125,7 +124,10 @@ export default function Tracking() {
               aria-label="กำลังตรวจสอบสถานะเคส"
             >
               <div className="flex items-center gap-3">
-                <Loader2 className="size-5 animate-spin text-cyan-700" aria-hidden="true" />
+                <Loader2
+                  className="size-5 animate-spin text-cyan-700"
+                  aria-hidden="true"
+                />
                 <p className="text-sm font-bold text-slate-700">
                   กำลังตรวจสอบโดยไม่เปิดเผยข้อมูลส่วนตัว
                 </p>
