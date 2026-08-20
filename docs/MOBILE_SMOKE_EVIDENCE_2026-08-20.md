@@ -57,3 +57,6 @@ The same acknowledged TEST Tracking session also exercised the failure state wit
 A controlled 77ff419 browser session forced Playwright context offline during a valid TEST PDF upload and visibly reached the pending state `บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม`. After restoring context connectivity and dispatching `online`, the final snapshot still showed `รอส่งใหม่`; no READY drain was claimed. This is evidence of real offline enqueue, but the automatic reconnect drain remains a conditional failure requiring further diagnosis.
 
 After deploying 35d7dd5, the controlled rerun produced both failed and HTTP 200 `public-attachment-upload` requests, but the final UI snapshot still showed one pending item. This indicates the reconnect request path executes, while UI/IndexedDB state reconciliation or concurrent stale queue items still needs diagnosis; no drain PASS is claimed yet.
+
+
+The explicit `ลองส่งใหม่` recovery attempt in the clean 6c30e88 session also timed out waiting for `อัปโหลดสำเร็จ`; the network log showed only the forced offline failure and no subsequent successful upload. This environment therefore does not yet provide a reliable post-reconnect browser drain PASS, even though the production adapter and explicit retry code are present and unit-tested. The item remains CONDITIONAL and owner/browser-environment gated.
