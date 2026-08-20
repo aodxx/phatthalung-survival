@@ -1,11 +1,41 @@
-## Intake offline reload follow-up
+# Full E2E Matrix Report
 
-Using a fresh browser tab and a confirmed Intake accessibility snapshot, offline reload preserved the same production route and rendered `ขั้นตอน 1 จาก 4`, `จุดเกิดเหตุ`, and `ถัดไป` with no application-error overlay. This closes the earlier context-transition ambiguity for the Intake shell. It does not yet prove queued offline submit/reconnect acknowledgement or attachment upload while offline.
+**Run tag:** `TEST_RUN_20260820`  
+**Data policy:** TEST data only; fixture cleanup completed.
 
-## Final regression gate
+## Result
 
-After the browser addendum, `Tracking.tsx` formatting was normalized. The final gate passed Prettier/lint, Vitest with 70 passed and 2 skipped tests, TypeScript, and production build. The E2E report remains conditional only for offline submit/reconnect acknowledgement, GPS permission-denied/unavailable, and complete browser attachment pending/retry/READY/download sequencing.
+The full matrix is **CONDITIONAL**, not a full PASS. Automated and live TEST evidence covers online intake, atomic rollback, concurrent idempotency, public tracking, wrong-token denial, RLS, offline queue contracts, attachment validation, READY upload, signed download, and cleanup. Stable browser network-control evidence for offline reconnect with real queued blobs, GPS permission-denied states, and the complete attachment browser lifecycle remains owner/environment bounded.
 
-## GPS permission fallback follow-up
+| Area                                         | Result      | Evidence                                                                                                 |
+| -------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------- |
+| Supabase RLS                                 | PASS        | TEST fixture: same-zone, other-zone, ADMIN, wrong-role, and field-assignment all true; cleanup completed |
+| Atomic intake rollback                       | PASS        | Real Supabase integration evidence; failed child leaves zero request/audit rows                          |
+| Concurrent idempotency                       | PASS        | One RECEIVED and one tokenless ALREADY_RECEIVED; cleanup completed                                       |
+| Tracking success/wrong token                 | PASS        | Live TEST evidence and tracking tests; public-safe response only                                         |
+| Offline request queue                        | PASS        | `offlineQueue.test.ts`, persistence/retry/idempotency contracts                                          |
+| Offline attachment queue                     | PASS        | `attachmentQueue.test.ts`, binary queue and retry contracts                                              |
+| Reconnect drain in browser                   | CONDITIONAL | Runtime wiring and unit contracts pass; browser network toggle/reload trace remains                      |
+| PWA root/manifest/service worker             | PASS        | Published `/` 200, `/manifest.webmanifest` 200, `/sw.js` 200                                             |
+| Direct `/intake` and `/tracking` HTTP status | CONDITIONAL | curl returns 404 while browser renders React through `404.html` fallback                                 |
+| Attachment validation/failure                | PASS        | MIME, size, count, error mapping and retryable 503 tests pass                                            |
+| Live attachment READY/download               | PASS        | TEST upload, READY metadata, authorized signed download and object/database cleanup previously verified  |
+| Attachment offline-to-READY browser trace    | CONDITIONAL | Queue/service contracts pass; stable browser network-control run remains                                 |
+| GPS denied/unavailable browser trace         | CONDITIONAL | Fallback code exists; permission matrix remains environment-dependent                                    |
+| Double-submit prevention                     | PASS        | UI gating and server idempotency contracts pass                                                          |
 
-With browser permissions cleared, a fresh production Intake route clicked `ใช้ตำแหน่ง GPS`. The page retained the manual-location option, produced no application-error overlay, and had no console error at navigation time. The exact localized GPS failure message was not detected by the simple text assertion, so permission-denied behavior is recorded as **CONDITIONAL** rather than PASS; the manual fallback itself is PASS.
+## Current gates
+
+Vitest: 16 files passed, 70 tests passed, 2 optional integration tests skipped. The TEST fixture created and removed 5 users, 2 zones, 2 teams, 2 requests, 2 incidents, and 2 missions. No real citizen data was used. Published endpoint checks returned `/` 200, manifest 200, service worker 200, and fallback 404.html 200.
+
+## Remaining gates
+
+A formal browser automation run must control network offline/online state, reload with queued TEST blobs, observe reconnect drain, and capture GPS-denied/unavailable and attachment pending/retry/READY/download states. These must remain TEST-only and fail-closed cleanup.
+
+## Browser automation addendum
+
+A Playwright browser run set the context offline and reloaded the published Tracking route. The page still rendered the Tracking heading and Case ID field with no application-error overlay, so offline shell resilience passed. A TEST-only wrong-token submission rendered the sanitized Thai alert state. The browser session reported one console error and the final network snapshot was unavailable after the page context reset; therefore the live production wrong-token transport result is recorded as CONDITIONAL for this run, while the previously verified live Edge Function/unit evidence remains PASS.
+
+## Intake browser addendum
+
+A production Intake navigation returned the expected GitHub Pages HTTP 404 fallback status and no console error at navigation time. The subsequent offline script remained on the prior Tracking page after the fallback/context transition, so it did not prove Intake controls under offline reload. This case is therefore **CONDITIONAL**, not PASS; the offline Tracking shell case remains PASS.

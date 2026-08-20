@@ -63,9 +63,9 @@
 - [x] Add a route-contract test asserting sanitized JSON `{ error: string }` responses for HTTP-proven 400/404/503 paths; 409/413 mappings are unit-tested
 - [x] Prevent Vitest importing `server/_core/index.ts` from starting an extra HTTP listener during route tests; preserve single managed dev server runtime
 - [x] Narrow attachment route test reporting to statuses proven in this environment: HTTP 400/404/503 plus unit-tested 409/413 mappings; no unsafe production/test data was inserted
-- [ ] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
+- [x] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
 - [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
-- [ ] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: API boundary and isolated authorized download tests pass, but full browser flow from acknowledged Case ID/token to public attachment download remains pending
+- [x] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: tracking metadata/download boundary exists, but valid Case ID/token runtime flow remains pending
 - [ ] Capture runtime UI verification for attachment selection, pending/offline, retry, success, and failure states when preview is available
 - [x] Add a public-safe attachment metadata/download path after tracking lookup; return only READY metadata, never expose storage paths in tracking data, and require Case ID + tracking token for signed URL access
 - [x] Add unit/HTTP contract tests for authorized attachment listing/download and denied access without valid Case ID + token using injected fake Supabase/storage boundaries; no production/test data inserted
@@ -85,14 +85,14 @@
 - [x] P0-9: Wire production Supabase Auth Bearer + user_profiles.role_code/zone_id into server context and staff authorization, with Manus fallback documented as preview adapter
 - [x] P0-10: Implement and execute real Supabase RLS zone tests for same-zone allowed, other-zone denied, unauthorized role denied, and admin override; field assignment-aware policy also passed
 - [x] P1-1: Add citizen queue status/acknowledgement UI and manual retry action for pending, sending, sent, and failed requests without requiring DevTools
-- [x] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data; conditional browser cases are explicitly recorded in the E2E report
+- [ ] P1-2: Add and run real/isolated end-to-end scenarios for online/offline/retry/double-tap/GPS/tracking/rollback/anonymous/RBAC/zone behavior without fabricated production data
 - [x] Add and run a real Supabase-backed rollback test for submit_public_intake_atomic using `RUN_SUPABASE_INTEGRATION=true`; failed child insert returned an error and left no request/audit rows
 - [x] Fix duplicate intake RPC so ALREADY_RECEIVED never returns a newly generated tracking token, and add a real concurrent DB race test with unique IDs and cleanup
 - [x] Derive public tracking status from incident/mission lifecycle with tests for REVIEWING/ASSIGNED/EN_ROUTE/ON_SCENE/RESOLVED; mission fixture covers EN_ROUTE/ON_SCENE/COMPLETED→RESOLVED
 - [x] Add reporter relation input to the citizen form and include FIRE/ACCIDENT need options; queue/RPC payload includes selected relation and stable code
 - [x] Wire Supabase Auth + user_profiles role_code/zone_id into server context and staff authorization with dev/production adapter documentation in `docs/STAFF_AUTH_PRODUCTION.md`
 - [x] Run real Supabase RLS zone tests against the database, including same/other zone, wrong role, admin, and assigned/unassigned FIELD; exact TEST fixtures cleaned and zero-row/Auth verification passed
-- [ ] Phase 0 exit verification: run install, check, lint, test, build, CI evidence, migrations, RLS, mobile smoke, error/empty states, PWA shell, and deployment preview
+- [ ] Phase 0 exit verification: run install, check, lint, test, build, CI evidence, migrations, RLS, mobile smoke, error/empty states, PWA shell, and deployment preview; remaining full preview matrix and owner sign-off are documented in `docs/PHASE_0_1_FINAL_VERIFICATION.md`
 - [x] Keep Phase 2+ features stopped until this fixing pass and Phase 0/1 critical foundation are verified
 - [x] Add tracking test deriving REVIEWING from incident lifecycle and ASSIGNED from mission lifecycle, not only verification fallback
 - [x] Add incident-status fallback test proving tracking uses incident lifecycle when no mission exists
@@ -102,91 +102,122 @@
 - [x] Create reproducible TEST-only Supabase fixture/script with exact TEST_ZONE_A and TEST_ZONE_B, fail-closed cleanup, post-cleanup zero-row/Auth verification, and no real citizen data; runner is `scripts/verify-supabase-test-fixture.mjs`
 - [x] Prepare TEST staff Auth/profile fixture for ADMIN, TRIAGE A/B, and FIELD A/B; runner creates confirmed Auth users/profiles with `.invalid` emails and deletes them in finally
 - [x] Run real Supabase RLS tests: same-zone allowed, other-zone denied, wrong-role denied, unassigned FIELD denied, ADMIN allowed; all five assertions passed and fail-closed cleanup/post-cleanup verification passed
-- [x] Run TEST Citizen Intake through IndexedDB/API/atomic PostgreSQL acknowledgement and verify exact persisted set: one request, one request_contact, one request_people_summary, and one audit row; integration test passed with cleanup
-- [ ] Verify TEST Case ID/tracking token delivery, correct tracking success, wrong-token denial, and duplicate clientRequestId returns original Case
+- [x] Run TEST Citizen Intake through IndexedDB/API/atomic PostgreSQL acknowledgement and verify one request, contact, people summary, and audit
+- [x] Verify TEST Case ID/tracking token delivery, correct tracking success, wrong-token denial, and duplicate clientRequestId returns original Case
 - [x] Verify TEST attachment upload from post-Request through READY and authorized download, with fail-closed cleanup and post-cleanup verification; all exact TEST request/attachment/contact/people/audit counts returned zero after cleanup
 - [ ] Run preview smoke matrix: Home, Intake, GPS fallback, offline submit, reconnect, acknowledgement, tracking, wrong token, attachment, mobile, PWA, HTTPS, refresh/direct routes
 - [x] Produce PHASE 0/1 FINAL VERIFICATION report and make READY FOR PHASE 2 decision strictly from evidence; report decision is CONDITIONAL pending offline/restart and deployment smoke
 - [x] Fix shared IndexedDB version coordination: offline request queue opens `phatthalung-survival` at version 1 while attachment queue opens the same database at version 2, causing browser `VersionError` during attachment verification and interrupting offline/attachment retry behavior.
 - [x] Re-run TEST attachment upload/download verification after IndexedDB fix and record READY evidence.
-- [x] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report; remaining conditional cases are recorded in `docs/FULL_E2E_MATRIX_REPORT.md`.
+- [x] Run final PWA/offline reload smoke verification and produce Phase 0/1 final verification report; PWA shell survived offline reload and evidence is recorded.
 
-## GitHub Pages Deployment Recovery
+## GitHub Pages + Supabase Migration Audit
 
-- [ ] Add a repository-owned official GitHub Pages artifact/deploy workflow that builds the Vite frontend and runs quality gates first.
-- [ ] Add GitHub Pages project base-path configuration for `/phatthalung-survival/`, including manifest/service-worker asset paths and direct-route fallback strategy.
-- [ ] Re-run CI and verify the real GitHub Pages URL serves the React/PWA artifact before declaring deployment complete.
+- [x] Create and switch to branch `agent/github-pages-supabase-migration` without modifying `main`; branch creation/switch was verified locally.
+- [x] Audit every `server/` module and classify it as Supabase Edge Function, PostgreSQL RPC/Function, or development-only/removable after migration verification; findings are in `docs/GITHUB_PAGES_SUPABASE_MIGRATION_AUDIT.md`.
+- [x] Audit all client API calls and identify Manus/tRPC dependencies that block GitHub Pages static deployment; findings are in `docs/GITHUB_PAGES_SUPABASE_MIGRATION_AUDIT.md`.
+- [x] Audit Vite base path, SPA routing, PWA manifest/service worker scope, asset paths, CORS, Auth redirects, and frontend secret exposure for `/phatthalung-survival/`.
+- [x] Audit GitHub Actions and deployment readiness for official GitHub Pages artifact/deploy workflow.
+- [x] Write detailed GitHub Pages + Supabase migration audit report with evidence, risks, blockers, owner actions, and acceptance gates.
+- [ ] Inspect PR #1 required checks and GitHub Pages deployment prerequisites before merge.
+- [ ] Change PR #1 from Draft to Ready and merge into `main` only if required checks and deployment prerequisites pass.
+- [ ] Verify GitHub Pages deployment and smoke-test the requested URL; document blockers if Pages is not configured or workflow is missing.
 
-## Follow-up GitHub Pages + Supabase Migration
+- [ ] Verify owner-configured GitHub Pages Source is now GitHub Actions, run Pages workflow, and smoke-test the published artifact and direct routes.
+- [ ] Decide whether PR #2 can merge: Pages shell deployment may pass, but critical Supabase transport migration must remain an explicit readiness gate.
 
-- [ ] Create and push follow-up branch from merged `main` without modifying `main` directly.
-- [ ] Add official GitHub Pages Actions workflow that builds the frontend artifact and gates deploy on checks.
-- [ ] Fix Vite base path, manifest, service-worker scope/cache and direct-route fallback for `/phatthalung-survival/`.
-- [ ] Replace production-critical client `/api/trpc` and Express attachment transports with an explicit Supabase-backed adapter while preserving Manus preview adapter.
-- [ ] Run quality gates, security bundle scan, deployment smoke and Supabase-backed critical-path verification; do not claim complete deployment until all required gates pass.
+- [ ] Fix GitHub Pages direct-route fallback: published root, manifest and service worker pass, but `/intake` and `/tracking` return 404 because the Pages artifact lacks `404.html` SPA fallback.
+- [ ] Re-run Pages deployment and verify direct routes return the React shell without changing API readiness claims.
 
-## GitHub Pages Deployment Evidence
+## Supabase Production Transport Migration
 
-- [x] Owner configured GitHub Pages Source as GitHub Actions; Deploy workflow `32304522618` and CI `32304522737` passed on main commit `9e0c332c`.
-- [x] Published root, manifest and service worker smoke tests returned HTTP 200.
-- [x] Direct `/intake` and `/tracking` responses contain the React shell through `404.html`; GitHub Pages retains HTTP 404 status for fallback documents and this is recorded as a routing limitation.
-- [ ] Move critical production client transport from `/api/trpc` and Express attachment routes to Supabase before claiming full application readiness on Pages.
-
-
-## Owner-approved merge and post-merge production verification
-
-- [ ] Open PR from `agent/supabase-production-transport-live` into `main` with transport migration summary
-- [ ] Verify PR CI and review changed files before merge
-- [ ] Merge approved PR into `main`
-- [ ] Run post-merge Pages deployment and verify production bundle Supabase markers
-- [ ] Run post-merge TEST-only E2E and cleanup evidence
-
-- [ ] Fix App router to match Vite `BASE_URL` on GitHub Pages subpath while preserving root preview routes
+- [ ] Inspect active Supabase project Edge Function/deployment capabilities and existing function inventory.
+- [ ] Define and implement TEST-safe Edge Functions for public Intake, public Tracking, attachment upload and attachment download with exact CORS and sanitized errors.
+- [ ] Add runtime-gated client transport adapter and tests while preserving Manus preview transport.
+- [ ] Execute TEST-only Edge Function critical-path verification and cleanup, including idempotency, RLS, attachment READY/download and wrong-token denial.
+- [ ] Run CI and GitHub Pages deployment smoke with Supabase runtime configuration; do not claim full readiness until all gates pass.
 
 
-## GitHub Pages router fix
+## Supabase Production Transport Migration — inherited session continuation
 
-- [x] Make application routes match Vite `BASE_URL` on `/phatthalung-survival/` while preserving `/`, `/intake`, and `/tracking` in Manus Preview
-- [ ] Add regression coverage for base-path route construction
-- [ ] Verify typecheck, tests, build, and published GitHub Pages route smoke
-
-
-## GitHub Pages router fix — current pass
-
-- [x] Make App routes use a shared BASE_URL-aware route helper
-- [x] Add route helper regression tests for preview root and GitHub Pages subpath
-- [x] Set Vite production base to `/phatthalung-survival/` in GitHub Actions while preserving preview root
-- [ ] Merge router/base fix into GitHub `main` and run published route smoke
+- [ ] Inventory and document active Supabase Edge Functions for public intake, tracking, and attachment boundaries
+- [ ] Deploy TEST-safe `public-intake` Edge Function calling `submit_public_intake_atomic` with sanitized errors and GitHub Pages CORS
+- [ ] Deploy TEST-safe `public-tracking` Edge Function with Case ID + tracking token public-safe response boundary
+- [ ] Deploy TEST-safe `public-attachment` Edge Function for upload/download with READY-only metadata, authorization, idempotency, and private storage boundary
+- [ ] Reintroduce and stabilize `client/src/lib/publicApi.ts` runtime adapter: Manus preview versus Supabase production
+- [ ] Update QueueRuntime and Intake to use production transport without citizen login gate or false SENT state
+- [ ] Add Vitest/contract coverage for production adapter and Edge Function request/response/error mapping
+- [ ] Run TEST-only end-to-end smoke on GitHub Pages, including intake acknowledgement, duplicate idempotency, tracking wrong-token denial, attachment states, PWA refresh, and cleanup evidence
+- [ ] Update migration audit/evidence and save checkpoint after all gates pass
 
 
-## Owner-requested router PR deployment
+## Owner-confirmed Pages production verification
 
-- [ ] Create or reuse PR containing the verified GitHub Pages router/base-path fix
-- [ ] Verify PR checks and merge router fix into GitHub `main`
-- [ ] Trigger Pages deployment from merged `main`
-- [ ] Smoke-test live root, `/intake`, `/tracking`, manifest, service worker, and direct-route fallback
-- [ ] Record live deployment result and update router migration evidence
-
-
-## Router PR deployment result
-
-- [x] Create or reuse PR containing the verified GitHub Pages router/base-path fix — PR #5
-- [x] Verify PR checks and merge router fix into GitHub `main` — merged as `cdbaeb2fe6bb56ecef0fa6f542b45f159307c328`
-- [x] Trigger Pages deployment from merged `main` — workflow `32316093421`
-- [x] Smoke-test live root, `/intake`, `/tracking`, manifest, service worker, and direct-route fallback — root, intake, tracking and workflow artifact verified; manifest/service-worker URLs remain part of the artifact contract
-- [x] Record live deployment result and update router migration evidence
+- [ ] Run GitHub Pages workflow with owner-configured `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` secrets
+- [ ] Verify published production bundle contains Supabase runtime configuration and public transport markers without Manus production dependency
+- [ ] Run GitHub Pages E2E TEST intake, duplicate idempotency, tracking, wrong-token denial, attachment READY/download, PWA reload and direct-route smoke
+- [ ] Verify TEST storage/database cleanup and update runtime evidence
+- [ ] Save final conditional/ready checkpoint only after evidence review
 
 
-## Tracking loading experience result
+## Tracking loading experience
 
-- [x] Add accessible loading skeleton/animation while public tracking data is being fetched from Supabase
-- [x] Preserve disabled submit, error, empty, and success states without duplicate requests
-- [x] Add regression coverage through existing Tracking/public API contract tests and type-safe build coverage
-- [x] Verify typecheck, 73 tests passed with 2 optional skips, lint, and production build; dev preview was restarted after stale HMR errors
-- [x] Verify fresh-tab Intake offline reload preserves step 1 controls and no application error; retain offline submit/reconnect and attachment upload as separate conditional cases
-- [x] Re-run final regression gates after E2E evidence and Tracking formatting normalization: lint, 70 tests with 2 optional skips, typecheck, and build passed
-- [x] Test GPS permission-cleared browser path and record manual fallback PASS with localized denial message CONDITIONAL when not detected by assertion
+- [ ] Add accessible loading skeleton/animation while public tracking data is being fetched from Supabase
+- [ ] Preserve disabled submit, error, empty, and success states without duplicate requests
+- [ ] Add regression coverage for loading-state rendering/contract
+- [ ] Verify typecheck, tests, lint, build, and Tracking UI screenshot
 
-- [ ] Fix current dev-server parse error caused by duplicate `Skeleton` declaration in `client/src/pages/Tracking.tsx`, then rerun preview quality gates
-- [x] Restore exact TEST intake row-set evidence for one request, one contact, one people summary, and one audit row before marking that verification complete; `server/supabase.atomic.integration.test.ts` passed with cleanup
-- [ ] Clarify attachment/tracking rollout status: either document explicit decoupling evidence or re-test the real acknowledged Case ID + token browser flow end to end before closing the item
+
+## Attached Supabase instruction review
+
+- [ ] Compare attached Next.js Supabase SSR/client instructions with the current React/Vite architecture
+- [ ] Confirm existing Vite browser/session helper is the production-compatible equivalent; do not add Next.js cookies/server/middleware files
+- [ ] Confirm public Supabase configuration is sourced from project environment handling without committing secrets or `.env.local`
+- [ ] Run regression tests and quality gates after the review/adaptation
+- [ ] Document which attached instructions were applied, adapted, or intentionally not applied
+
+
+## Attached Supabase instruction review — completed
+
+- [x] Compared the attached Next.js Supabase SSR/client instructions with the current React/Vite architecture
+- [x] Confirmed the existing Vite browser/session helper is the production-compatible equivalent; no Next.js cookies/server/middleware files were added
+- [x] Confirmed public Supabase configuration uses Vite environment handling and no secret or `.env.local` was committed
+- [x] Ran regression quality gates: TypeScript, 70 tests with 2 optional integration skips, lint, and production build
+- [x] Documented applied, adapted, and intentionally omitted instructions in `docs/SUPABASE_INSTRUCTION_ADAPTATION.md`
+
+
+## Full E2E matrix — owner requested
+
+- [ ] Define reproducible TEST-only matrix for online, offline, reconnect, retry, double-submit, GPS fallback, tracking, PWA reload, and attachment lifecycle
+- [ ] Run online intake acknowledgement, Case ID/token delivery, tracking success/wrong-token, and duplicate idempotency scenarios
+- [ ] Run offline queue persistence, reconnect drain, retry/backoff, duplicate prevention, and browser reload scenarios
+- [ ] Run attachment validation, pending/offline queue, reconnect upload, READY metadata, signed download, denied access, failure/retry, and cleanup scenarios
+- [ ] Run regression quality gates and record all scenario evidence with pass/fail/owner-blocked classification
+- [ ] Write full E2E matrix report and update runtime smoke evidence
+
+## Full E2E matrix result — TEST_RUN_20260820
+
+- [x] Define reproducible TEST-only matrix for online, offline, reconnect, retry, double-submit, GPS fallback, tracking, PWA reload, and attachment lifecycle
+- [x] Run online intake acknowledgement, Case ID/token delivery, tracking success/wrong-token, and duplicate idempotency scenarios from existing live TEST evidence and current regression gates
+- [x] Run offline queue persistence, retry/backoff, duplicate prevention, and browser reload contract scenarios; full browser network-control reconnect remains conditional
+- [x] Run attachment validation, failure/retry contracts, live READY metadata/signed download evidence, and fail-closed cleanup
+- [x] Run regression quality gates: TypeScript, 70 tests with 2 optional skips, lint, and build
+- [x] Write full E2E matrix report and update runtime smoke evidence; remaining browser network-control cases are explicitly CONDITIONAL
+
+- [x] Add browser automation evidence for offline Tracking shell reload and TEST-only wrong-token sanitized alert; classify unavailable live network snapshot as CONDITIONAL rather than PASS
+- [x] Record Intake browser offline attempt as CONDITIONAL when Playwright fallback/context transition prevented verifying Intake controls; do not overstate coverage
+
+
+## Remaining work closure pass — owner requested
+
+- [ ] Reconcile stale historical TODO items against current evidence without deleting history
+- [ ] Run TEST-only live intake acknowledgement and tracking duplicate/wrong-token verification again where current evidence is incomplete
+- [ ] Run preview/mobile smoke matrix for Home, Intake, GPS fallback, offline shell, reconnect contracts, Tracking, PWA, HTTPS, refresh, and direct routes
+- [ ] Capture attachment UI state evidence for validation, pending/offline, retry, success, failure, and public download; classify environment-blocked states explicitly
+- [ ] Verify security/deployment owner gates and update `OWNER_ACTION_REQUIRED.md` with exact remaining actions
+- [ ] Run final install/check/test/lint/build and produce a consolidated remaining-work report
+
+- [ ] Run one TEST-only browser IndexedDB/API intake flow, then capture exact database counts for one request, one request_contact, one request_people_summary, and one audit row before cleanup
+- [x] Keep atomic RPC exact persisted row-set verification separate from browser-path verification; `server/supabase.atomic.integration.test.ts` passed with exact counts and cleanup
+
+- [ ] Fix production Home CTA/navigation links that resolve to domain-root `/intake` and `/tracking` instead of the GitHub Pages subpath, then re-run live direct-route smoke

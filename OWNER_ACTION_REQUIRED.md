@@ -67,4 +67,6 @@
 
 ก่อนเปิดใช้งานจริง เจ้าของระบบต้องยืนยันระยะเวลาเก็บไฟล์ งบประมาณ storage กระบวนการตรวจ malware/antivirus และค่า rate limit สำหรับ public upload ปัจจุบัน implementation ใช้ storage boundary ของแพลตฟอร์ม, controlled server route, allowlist JPG/PNG/WebP/PDF, จำกัดไฟล์ละ 10 MB และกำหนดสูงสุด 3 ไฟล์ใน client policy แต่ยังไม่ถือว่าการสแกน malware หรือ rate limiting production เสร็จสมบูรณ์
 
-การตรวจชื่อ repository secrets ผ่าน GitHub API ใน session นี้ถูกปฏิเสธด้วย HTTP 403 (`Resource not accessible by integration`) จึงยังยืนยันไม่ได้ว่า secrets ถูกตั้งแล้ว เจ้าของควรตรวจที่ Settings → Secrets and variables → Actions โดยไม่ส่งค่า secret ผ่านแชต
+## 9. ตั้งค่า GitHub Actions secrets สำหรับ Supabase production frontend
+
+ก่อนยืนยัน production runtime บน GitHub Pages ให้เพิ่ม repository secrets ชื่อ `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ใน GitHub repository settings ของ `aodxx/phatthalung-survival` โดยใช้ค่าจาก active Supabase project `ulawoqswzqfpqyssxggn` เท่านั้น ห้ามใช้ service-role key ใน frontend หรือ workflow artifact การตั้งค่านี้ทำให้ `pages.yml` build ด้วย `VITE_RUNTIME_BACKEND=supabase`; หากยังไม่ตั้งค่า ระบบจะ fail closed และ Manus preview adapter จะยังเป็นทางเลือกสำหรับ development เท่านั้น
