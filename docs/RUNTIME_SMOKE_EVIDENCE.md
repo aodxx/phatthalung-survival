@@ -33,3 +33,5 @@ PR #5, `fix: support GitHub Pages subpath routing`, was merged into `main`, and 
 - Published `/` returned 200; manifest and service worker returned 200; direct `/intake` and `/tracking` returned HTTP 404 but browser navigation rendered React through the `404.html` fallback.
 - Live TEST evidence covers atomic rollback, concurrent idempotency, tracking wrong-token denial, attachment READY/signed download, private object deletion, and database cleanup.
 - Full browser network-control evidence for offline reload/reconnect drain, GPS permission-denied, and attachment pending-to-READY remains CONDITIONAL and must use TEST data only.
+
+- Playwright network-control addendum: offline reload of published Tracking retained the Tracking heading and Case ID field with no application-error overlay. TEST-only wrong-token form rendered the sanitized alert. The browser network snapshot became unavailable after context reset, so live transport classification for this single browser attempt is CONDITIONAL; prior Edge Function/unit wrong-token evidence remains PASS.

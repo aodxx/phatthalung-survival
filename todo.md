@@ -203,3 +203,5 @@
 - [x] Run attachment validation, failure/retry contracts, live READY metadata/signed download evidence, and fail-closed cleanup
 - [x] Run regression quality gates: TypeScript, 70 tests with 2 optional skips, lint, and build
 - [x] Write full E2E matrix report and update runtime smoke evidence; remaining browser network-control cases are explicitly CONDITIONAL
+
+- [x] Add browser automation evidence for offline Tracking shell reload and TEST-only wrong-token sanitized alert; classify unavailable live network snapshot as CONDITIONAL rather than PASS

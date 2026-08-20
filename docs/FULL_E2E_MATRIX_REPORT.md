@@ -31,3 +31,7 @@ Vitest: 16 files passed, 70 tests passed, 2 optional integration tests skipped. 
 ## Remaining gates
 
 A formal browser automation run must control network offline/online state, reload with queued TEST blobs, observe reconnect drain, and capture GPS-denied/unavailable and attachment pending/retry/READY/download states. These must remain TEST-only and fail-closed cleanup.
+
+## Browser automation addendum
+
+A Playwright browser run set the context offline and reloaded the published Tracking route. The page still rendered the Tracking heading and Case ID field with no application-error overlay, so offline shell resilience passed. A TEST-only wrong-token submission rendered the sanitized Thai alert state. The browser session reported one console error and the final network snapshot was unavailable after the page context reset; therefore the live production wrong-token transport result is recorded as CONDITIONAL for this run, while the previously verified live Edge Function/unit evidence remains PASS.
