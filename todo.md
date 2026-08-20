@@ -137,7 +137,6 @@
 - [x] Execute TEST-only Edge Function critical-path verification and cleanup, including idempotency, RLS, attachment READY/download and wrong-token denial.
 - [x] Run CI and GitHub Pages deployment smoke with Supabase runtime configuration; CI and Pages runs passed, while conditional readiness caveats remain documented.
 
-
 ## Supabase Production Transport Migration — inherited session continuation
 
 - [x] Inventory and document active Supabase Edge Functions for public intake, tracking, and attachment boundaries
@@ -150,7 +149,6 @@
 - [x] Run TEST-only end-to-end smoke on GitHub Pages, including intake acknowledgement, duplicate idempotency, tracking wrong-token denial, attachment states, PWA refresh, and cleanup evidence; browser-only conditional cases are documented
 - [x] Update migration audit/evidence and save checkpoint after all gates pass; checkpoints and reports are present, with conditional gates explicitly retained
 
-
 ## Owner-confirmed Pages production verification
 
 - [x] Run GitHub Pages workflow with owner-configured `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` secrets; runs `32325960656` and `32325960697` passed
@@ -159,14 +157,12 @@
 - [x] Verify TEST storage/database cleanup and update runtime evidence; fail-closed cleanup and zero-row verification are recorded
 - [x] Save final conditional/ready checkpoint only after evidence review; latest checkpoint and conditional decision are recorded
 
-
 ## Tracking loading experience
 
 - [x] Add accessible loading skeleton/animation while public tracking data is being fetched from Supabase
 - [x] Preserve disabled submit, error, empty, and success states without duplicate requests
 - [x] Add regression coverage for loading-state rendering/contract
 - [x] Verify typecheck, tests, lint, build, and Tracking UI screenshot
-
 
 ## Attached Supabase instruction review
 
@@ -176,7 +172,6 @@
 - [x] Run regression tests and quality gates after the review/adaptation
 - [x] Document which attached instructions were applied, adapted, or intentionally not applied
 
-
 ## Attached Supabase instruction review — completed
 
 - [x] Compared the attached Next.js Supabase SSR/client instructions with the current React/Vite architecture
@@ -184,7 +179,6 @@
 - [x] Confirmed public Supabase configuration uses Vite environment handling and no secret or `.env.local` was committed
 - [x] Ran regression quality gates: TypeScript, 70 tests with 2 optional integration skips, lint, and production build
 - [x] Documented applied, adapted, and intentionally omitted instructions in `docs/SUPABASE_INSTRUCTION_ADAPTATION.md`
-
 
 ## Full E2E matrix — owner requested
 
@@ -207,7 +201,6 @@
 - [x] Add browser automation evidence for offline Tracking shell reload and TEST-only wrong-token sanitized alert; classify unavailable live network snapshot as CONDITIONAL rather than PASS
 - [x] Record Intake browser offline attempt as CONDITIONAL when Playwright fallback/context transition prevented verifying Intake controls; do not overstate coverage
 
-
 ## Remaining work closure pass — owner requested
 
 - [x] Reconcile stale historical TODO items against current evidence without deleting history; superseded migration/Pages entries now reference current PR, run, and report evidence
@@ -217,13 +210,15 @@
 - [x] Verify security/deployment owner gates and update `OWNER_ACTION_REQUIRED.md` with exact remaining actions
 - [x] Run final install/check/test/lint/build and produce a consolidated remaining-work report; final gates passed and report is `docs/REMAINING_WORK_CLOSURE_REPORT.md`
 
-- [ ] Run one TEST-only browser IndexedDB/API intake flow, then capture exact database counts for one request, one request_contact, one request_people_summary, and one audit row before cleanup
+- [x] Run one TEST-only browser IndexedDB/API intake flow, then capture exact database counts for one request, one request_contact, one request_people_summary, and one audit row before cleanup; browser Case `PTL-2026-2YUW5W` mapped to request `d1a51c4c-f01e-4801-9ade-117cddc26b19` and each limited query returned exactly one row
 - [x] Keep atomic RPC exact persisted row-set verification separate from browser-path verification; `server/supabase.atomic.integration.test.ts` passed with exact counts and cleanup
 
 - [x] Fix production Home CTA/navigation links that resolve to domain-root `/intake` and `/tracking` instead of the GitHub Pages subpath, then re-run live direct-route smoke; cache-busted production CTA now reaches `/phatthalung-survival/intake`, and direct Tracking reaches `/phatthalung-survival/tracking`
 
 - [x] Add `workflow_dispatch` to CI so closure branches can run the same quality gates explicitly when pull_request checks are not provisioned; manual CI run 32325255411 passed
 
-- [ ] Diagnose and fix production Supabase intake transport returning GitHub Pages HTML (`Unexpected token '<'`) during TEST retry instead of JSON acknowledgement; re-run TEST-only browser flow and cleanup
+- [x] Diagnose and fix production Supabase intake transport returning GitHub Pages HTML (`Unexpected token '<'`) during TEST retry instead of JSON acknowledgement; Pages workflow now injects Supabase runtime variables, PR12 TEST retry returned acknowledgement JSON, and the sanitized incident is documented
 
-- [x] Wire Tracking page lookup and attachment download through the runtime-gated Supabase/Manus public adapter; remove production dependence on `/api/trpc`; local typecheck/lint/70 tests/build passed, and live TEST smoke follows deployment
+- [x] Fix Tracking empty-state condition to use normalized production/preview `data`, `isLoading`, and `error` instead of legacy `lookup.*`; local typecheck/lint/70 tests/build passed, and live smoke follows deployment
+
+- [x] Format newly checked-in Edge Function source and closure documentation, then rerun diff/check/lint/test/build before final checkpoint; all passed with 70 tests and 2 optional skips

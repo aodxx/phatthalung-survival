@@ -284,7 +284,7 @@ export default function Tracking() {
               />
             </>
           )}
-          {submitted && !lookup.isLoading && !lookup.error && !lookup.data && (
+          {submitted && !isLoading && !error && !data && (
             <div
               className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-900"
               role="status"

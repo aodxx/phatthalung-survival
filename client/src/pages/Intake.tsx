@@ -23,7 +23,6 @@ import {
   isSupabaseProductionRuntime,
   submitPublicIntakeProduction,
 } from "@/lib/publicApi";
-import { getRoutePath } from "@/lib/routing";
 
 type IntakeDraft = {
   locationMode: "gps" | "text" | "";
@@ -86,7 +85,6 @@ const steps = [
 ] as const;
 
 export default function Intake() {
-  const route = (path: string) => getRoutePath(import.meta.env.BASE_URL, path);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<IntakeDraft>(initialDraft);
   const [submitted, setSubmitted] = useState(false);
@@ -313,7 +311,7 @@ export default function Intake() {
                 </>
               )}
               <Link
-                href={route("/tracking")}
+                href="/tracking"
                 className="block rounded-xl bg-[#0b3b5a] px-3 py-3 text-center text-sm font-bold text-white"
               >
                 ติดตามเคสนี้
@@ -331,7 +329,7 @@ export default function Intake() {
             </button>
           )}
           <Link
-            href={route("/")}
+            href="/"
             className="mt-6 block text-center text-sm font-bold text-cyan-800 underline underline-offset-4"
           >
             กลับหน้าแรก
@@ -347,7 +345,7 @@ export default function Intake() {
       <div className="mx-auto max-w-2xl">
         <div className="flex items-center justify-between gap-4">
           <Link
-            href={route("/")}
+            href="/"
             className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 underline-offset-4 hover:underline"
           >
             <ArrowLeft className="size-4" /> หน้าแรก

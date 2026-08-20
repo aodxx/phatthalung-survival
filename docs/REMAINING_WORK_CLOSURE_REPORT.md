@@ -49,3 +49,11 @@
 ## Final quality gate
 
 รอบสุดท้ายหลังแก้ production navigation ผ่าน `pnpm install --frozen-lockfile`, `pnpm check`, `pnpm lint`, `pnpm test -- --run` และ `pnpm build` โดยผลคือ 70 tests ผ่าน, 2 optional Supabase integration tests ถูก skip ตามค่าเริ่มต้น, typecheck/lint/build ผ่าน การแจ้งเตือน chunk ใหญ่กว่า 500 kB เป็น performance warning ไม่ใช่ build failure
+
+## Closure pass addendum — Tracking adapter and source reproducibility
+
+The production Tracking page now uses `lookupPublicTrackingProduction` and `downloadPublicAttachmentProduction` whenever `VITE_RUNTIME_BACKEND=supabase`; Manus tRPC remains the preview fallback. The empty-state condition was normalized to the adapter state, and the Tracking home link uses the GitHub Pages base path. PR #13 passed CI run `32328146088`, was merged, and Pages deployment run `32328203974` passed.
+
+A cache-busted browser TEST acknowledgement for Case ID `PTL-2026-2YUW5W` returned the tracking credentials and its success link rendered `/phatthalung-survival/tracking`. The corresponding TEST request ID was `d1a51c4c-f01e-4801-9ade-117cddc26b19`, with one request row, one `request_contacts` row, one `request_people_summary` row, and one `audit_logs` row verified through limited read-only queries. Supabase function logs show the browser reached `public-tracking` with POST 200 and JSON content. One later browser lookup displayed the sanitized no-match state for this historical fixture, so that data/fixture consistency caveat remains explicit rather than being overclaimed as a complete lookup PASS.
+
+The exact deployed Edge Function sources are now checked into `supabase/functions/`: `public-intake` version 2 SHA-256 `010ee6b9f4ee61a8415148e40e7196a5c01d8a554f27a6c77cb43af658ab3fa2`, `public-tracking` version 1 SHA-256 `8dade9ebd689d742ea648d319b51d1468772ea6253cd9ce8f91a56d1a7413ebe`, `public-attachment-upload` version 1 SHA-256 `6527127b2cd35492863d6eb38720c03946aa7bbf43029d7e7e475432bc7f1a90`, and `public-attachment-download` version 1 SHA-256 `f2fbe7f762ab0ebb7e3fee39baaa0d20f662eec90c0851b53afbad692cd3d86e`.
