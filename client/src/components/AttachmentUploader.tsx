@@ -266,10 +266,20 @@ export default function AttachmentUploader({
                 />
               )}
               {item.state === "PENDING" && (
-                <Loader2
-                  className="size-4 text-amber-700"
-                  aria-label="รอส่งใหม่"
-                />
+                <>
+                  <Loader2
+                    className="size-4 text-amber-700"
+                    aria-label="รอส่งใหม่"
+                  />
+                  <Button
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={() => void drainPending(true)}
+                  >
+                    ลองส่งใหม่
+                  </Button>
+                </>
               )}
               {item.state === "READY_SERVER" && (
                 <CheckCircle2
