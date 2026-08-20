@@ -33,3 +33,13 @@ The TEST-only Tracking lookup succeeded with `PTL-2026-SSFNPQ` and the recorded 
 The live TEST Tracking session successfully opened the file chooser and selected `/opt/.manus/current/test-attachment.pdf`. The mobile snapshot showed `test-attachment.pdf`, `1 KB`, and an enabled `อัปโหลด` button under the attachment policy. This is PASS for browser file-picker/selection/validation UI; upload acknowledgement, retry/failure state, public download, and cleanup remain to be verified.
 
 After clicking `อัปโหลด`, the live Tracking UI retained `test-attachment.pdf` and displayed the accessible status `บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม` with a retry indicator. This proves selection and pending/offline state, but not successful server acknowledgement/READY in this browser session. The exact TEST Case ID/token remains available for a controlled retry; no real-citizen data was used.
+
+After Pages deploy run for commit `e83529a`, a fresh production Tracking route loaded the expected mobile lookup shell with zero console errors. This is the starting point for the post-fix TEST attachment retry.
+
+On the fresh post-fix Tracking lookup, Playwright reported two console errors after clicking `ตรวจสอบสถานะ`; the exact console file path was not available for local reading. The operation must be treated as CONDITIONAL until the current snapshot/network response is inspected. No upload success is claimed from this attempt.
+
+In the fresh e83529a production bundle, TEST PDF selection still renders correctly with filename, size, and upload control. The adapter fix is now in the bundle; the next network capture will distinguish Supabase Edge Function upload from the previous GitHub Pages 405 path.
+
+After the e83529a adapter fix, the live upload request went to `https://ulawoqswzqfpqyssxggn.supabase.co/functions/v1/public-attachment-upload` (HTTP 200), not GitHub Pages. The response was `{status:"READY", attachmentId:"0e04eb91-aede-4d06-81f2-8e4b0ec209ac", requestId:"b43b8773-2536-4cb4-8772-7c751e4915cf", fileName:"test-attachment.pdf", mimeType:"application/pdf", byteSize:482}`. This is PASS for production adapter routing and server READY acknowledgement with TEST-only data.
+
+After a second Tracking lookup, the live UI retained the TEST PDF with `อัปโหลดสำเร็จ` icon. The attachment metadata list is not shown in the same snapshot because the returned public-tracking payload did not include the newly uploaded row in this refresh; upload itself is independently proven by the Supabase `READY` response and success icon. Download must be verified via the public attachment boundary/response evidence rather than claiming a UI button that is not rendered here.

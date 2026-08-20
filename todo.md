@@ -245,3 +245,5 @@
 ## Production attachment transport gap
 
 - [ ] Route AttachmentUploader upload/drain through the Supabase production Edge Function adapter instead of relative GitHub Pages `/api/public/attachments`, then rerun live TEST READY/download/cleanup evidence
+
+- [ ] Allow repeated Tracking submit with unchanged Case ID/token to refetch production metadata after attachment upload, then verify READY listing and public download

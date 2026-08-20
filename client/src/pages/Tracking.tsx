@@ -26,6 +26,7 @@ export default function Tracking() {
   const [caseCode, setCaseCode] = useState("");
   const [trackingToken, setTrackingToken] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [lookupNonce, setLookupNonce] = useState(0);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const utils = trpc.useUtils();
@@ -65,7 +66,7 @@ export default function Tracking() {
     return () => {
       active = false;
     };
-  }, [input, isProduction, submitted]);
+  }, [input, isProduction, submitted, lookupNonce]);
 
   const data = isProduction ? productionData : lookup.data;
   const isLoading = isProduction ? productionLoading : lookup.isLoading;
@@ -74,6 +75,7 @@ export default function Tracking() {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitted(true);
+    setLookupNonce(current => current + 1);
     setDownloadError(null);
   };
 
