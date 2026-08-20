@@ -53,6 +53,40 @@ describe.skipIf(!runIntegration)("Supabase atomic public intake", () => {
       )!;
       expect(duplicate.caseCode).toBe(received.caseCode);
       expect(duplicate.trackingToken).toBeUndefined();
+
+      const { data: persistedRequests, error: requestError } = await supabase!
+        .from("requests")
+        .select("id")
+        .eq("client_request_id", clientRequestId)
+        .limit(2);
+      expect(requestError).toBeNull();
+      expect(persistedRequests).toHaveLength(1);
+      const persistedRequestId = persistedRequests?.[0]?.id;
+      expect(persistedRequestId).toBeTruthy();
+
+      const [contacts, people, audits] = await Promise.all([
+        supabase!
+          .from("request_contacts")
+          .select("request_id")
+          .eq("request_id", persistedRequestId)
+          .limit(2),
+        supabase!
+          .from("request_people_summary")
+          .select("request_id")
+          .eq("request_id", persistedRequestId)
+          .limit(2),
+        supabase!
+          .from("audit_logs")
+          .select("id")
+          .eq("entity_id", persistedRequestId)
+          .limit(2),
+      ]);
+      expect(contacts.error).toBeNull();
+      expect(people.error).toBeNull();
+      expect(audits.error).toBeNull();
+      expect(contacts.data).toHaveLength(1);
+      expect(people.data).toHaveLength(1);
+      expect(audits.data).toHaveLength(1);
     } finally {
       const { data: rows } = await supabase!
         .from("requests")
