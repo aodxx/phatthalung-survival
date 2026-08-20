@@ -54,7 +54,7 @@
 - [x] Add client-side attachment picker, validation, list, upload action, and post-Request upload flow without blocking Request creation
 - [x] Add offline attachment pending queue with bounded file-size handling, online drain, and retry state that never claims upload success before server acknowledgement
 - [x] Add controlled upload API/storage boundary with server-side validation, audit event, and Request token access check
-- [ ] Add attachment security, offline, validation, and API contract tests; contract/storage evidence passes, but malware scanning, rate limiting, retention policy, and full browser attachment-state runtime remain OWNER ACTION/CONDITIONAL
+- [ ] Add attachment security, offline, validation, and API contract tests; contract/storage evidence, production Supabase adapter, valid TEST READY/download, and invalid-MIME browser state pass; real offline pending/drain evidence after the transport fix remains open, while malware scanning, rate limiting, and retention policy remain separate owner actions
 - [x] Update `OWNER_ACTION_REQUIRED.md` with storage bucket, retention, malware scanning, and production upload configuration decisions
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
@@ -66,10 +66,10 @@
 - [x] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
 - [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
 - [x] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: tracking metadata/download boundary exists, but valid Case ID/token runtime flow remains pending
-- [ ] Capture full runtime UI verification for attachment selection, pending/offline, retry, success, and failure states in one browser session; available contract evidence is recorded, but browser file-picker/reconnect lifecycle remains CONDITIONAL
+- [ ] Capture full runtime UI verification for attachment selection, pending/offline, retry, success, and failure states in one acknowledged TEST session; selection/success/failure/download pass, but pending→retry→drain after transport fix is not yet proven and the historical 405 pending state is excluded
 - [x] Add a public-safe attachment metadata/download path after tracking lookup; return only READY metadata, never expose storage paths in tracking data, and require Case ID + tracking token for signed URL access
 - [x] Add unit/HTTP contract tests for authorized attachment listing/download and denied access without valid Case ID + token using injected fake Supabase/storage boundaries; no production/test data inserted
-- [ ] Add full runtime UI verification for attachment selection, offline pending, retry, success, failure, and public download states using a valid acknowledged TEST Case ID/token in one session; API/storage evidence passes but browser lifecycle remains owner-gated
+- [ ] Add full runtime UI verification for attachment selection, offline pending, retry, success, failure, and public download states using one acknowledged TEST Case ID/token session; selection, READY, failure, download, and cleanup pass, but same-session offline pending/retry/drain remains open
 - [x] Begin Phase 2 staff intake and operations queue design from Blueprint/PRD after citizen attachment access is closed; design boundary recorded in `docs/PHASE2_OPERATIONS_QUEUE_DESIGN.md`
 
 ## Fixing Agent — Phase 0/1 blocking issues from owner instruction
@@ -238,12 +238,14 @@
 
 ## Evidence gaps reopened
 
-- [ ] Complete real browser attachment UI verification in one valid TEST Case ID/token session, or retain as conditional if file-picker/network controls are unavailable
+- [ ] Complete real browser attachment UI verification in one valid TEST Case ID/token session, including a controlled offline pending→online retry/drain transition; current 77ff419 session proves selection → READY → repeated tracking list → signed download and invalid MIME failure, but not the controlled offline transition
 - [x] Complete broader mobile/deployment smoke beyond Tracking-only proof for the Phase 0 exit gate; production Home, Intake, Tracking, and Operations mobile snapshots are recorded, with Pages direct-route HTTP 404 fallback and unauthenticated Operations query classified as CONDITIONAL
 - [ ] Separate attachment security owner actions (malware scanning, rate limiting, retention) from completed contract coverage and obtain owner approval
 
 ## Production attachment transport gap
 
-- [ ] Route AttachmentUploader upload/drain through the Supabase production Edge Function adapter instead of relative GitHub Pages `/api/public/attachments`, then rerun live TEST READY/download/cleanup evidence
+- [x] Route AttachmentUploader upload/drain through the Supabase production Edge Function adapter instead of relative GitHub Pages `/api/public/attachments`; live TEST upload returned READY via `public-attachment-upload`, tracking listing and signed download passed, and exact storage/row cleanup was verified
 
-- [ ] Allow repeated Tracking submit with unchanged Case ID/token to refetch production metadata after attachment upload, then verify READY listing and public download
+- [x] Allow repeated Tracking submit with unchanged Case ID/token to refetch production metadata after attachment upload; 77ff419 live smoke showed READY listing and public signed download, followed by exact TEST cleanup
+
+- [ ] Make attachment online reconnect drain override the retry backoff for an item queued by the immediately preceding offline upload, add regression coverage, and rerun controlled browser pending→READY evidence

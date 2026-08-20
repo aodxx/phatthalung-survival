@@ -109,14 +109,15 @@ export async function updateAttachmentQueueItem(
 
 export async function drainAttachmentQueue(
   upload: (item: AttachmentQueueItem) => Promise<{ acknowledged: boolean }>,
-  now = Date.now()
+  now = Date.now(),
+  force = false
 ): Promise<AttachmentQueueItem[]> {
   const items = await listAttachmentQueueItems();
   const results: AttachmentQueueItem[] = [];
   for (const item of items) {
     if (
       (item.status !== "PENDING" && item.status !== "FAILED") ||
-      item.nextAttemptAt > now
+      (!force && item.nextAttemptAt > now)
     )
       continue;
     const sending = {

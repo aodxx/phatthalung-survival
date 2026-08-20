@@ -72,39 +72,44 @@ export default function AttachmentUploader({
 }) {
   const [items, setItems] = useState<UploadItem[]>([]);
 
-  const drainPending = useCallback(async () => {
-    const results = await drainAttachmentQueue(
-      async (item: AttachmentQueueItem) => {
-        await postAttachment({
-          id: item.clientAttachmentId,
-          fileName: item.fileName,
-          mimeType: item.mimeType,
-          blob: item.blob,
-          caseCode: item.caseCode,
-          trackingToken: item.trackingToken,
-        });
-        return { acknowledged: true };
-      }
-    );
-    setItems(current =>
-      current.map(entry => {
-        const result = results.find(
-          candidate => candidate.clientAttachmentId === entry.id
-        );
-        if (!result) return entry;
-        return result.status === "READY"
-          ? { ...entry, state: "READY_SERVER", message: undefined }
-          : {
-              ...entry,
-              state: "PENDING",
-              message: "บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
-            };
-      })
-    );
-  }, [caseCode, trackingToken]);
+  const drainPending = useCallback(
+    async (force = false) => {
+      const results = await drainAttachmentQueue(
+        async (item: AttachmentQueueItem) => {
+          await postAttachment({
+            id: item.clientAttachmentId,
+            fileName: item.fileName,
+            mimeType: item.mimeType,
+            blob: item.blob,
+            caseCode: item.caseCode,
+            trackingToken: item.trackingToken,
+          });
+          return { acknowledged: true };
+        },
+        Date.now(),
+        force
+      );
+      setItems(current =>
+        current.map(entry => {
+          const result = results.find(
+            candidate => candidate.clientAttachmentId === entry.id
+          );
+          if (!result) return entry;
+          return result.status === "READY"
+            ? { ...entry, state: "READY_SERVER", message: undefined }
+            : {
+                ...entry,
+                state: "PENDING",
+                message: "บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
+              };
+        })
+      );
+    },
+    [caseCode, trackingToken]
+  );
 
   useEffect(() => {
-    const onOnline = () => void drainPending();
+    const onOnline = () => void drainPending(true);
     void drainPending();
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);

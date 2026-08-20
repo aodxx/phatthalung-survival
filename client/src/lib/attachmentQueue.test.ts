@@ -4,6 +4,7 @@ import {
   drainAttachmentQueue,
   enqueueAttachment,
   listAttachmentQueueItems,
+  updateAttachmentQueueItem,
 } from "./attachmentQueue";
 import { enqueueCitizenRequest, listQueueItems } from "./offlineQueue";
 
@@ -86,5 +87,30 @@ describe("offline attachment queue", () => {
       lastError: "storage unavailable",
     });
     expect((await listAttachmentQueueItems())[0]?.status).toBe("FAILED");
+  });
+
+  it("forces an online reconnect drain before the retry backoff expires", async () => {
+    const queued = await enqueueAttachment(item);
+    await updateAttachmentQueueItem({
+      ...queued,
+      status: "FAILED",
+      attempts: 1,
+      nextAttemptAt: Date.now() + 60_000,
+      lastError: "offline",
+    });
+
+    const results = await drainAttachmentQueue(
+      async sending => {
+        expect(sending.status).toBe("UPLOADING");
+        return { acknowledged: true };
+      },
+      Date.now(),
+      true
+    );
+
+    expect(results[0]).toMatchObject({
+      status: "READY",
+      attempts: 2,
+    });
   });
 });
