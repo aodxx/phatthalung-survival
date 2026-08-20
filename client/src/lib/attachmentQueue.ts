@@ -15,12 +15,15 @@ export type AttachmentQueueItem = {
   status: AttachmentQueueStatus;
   attempts: number;
   nextAttemptAt: number;
+  updatedAt: number;
+  lockedAt?: number;
   lastError?: string;
 };
 
 const DB_NAME = "phatthalung-survival";
 const STORE_NAME = "attachmentQueue";
 const VERSION = 3;
+export const ATTACHMENT_UPLOAD_STALE_MS = 2 * 60 * 1000;
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -56,13 +59,18 @@ export function nextAttachmentRetryAt(
 }
 
 export async function enqueueAttachment(
-  item: Omit<AttachmentQueueItem, "status" | "attempts" | "nextAttemptAt">
+  item: Omit<
+    AttachmentQueueItem,
+    "status" | "attempts" | "nextAttemptAt" | "updatedAt" | "lockedAt"
+  >
 ): Promise<AttachmentQueueItem> {
+  const now = Date.now();
   const next: AttachmentQueueItem = {
     ...item,
     status: "PENDING",
     attempts: 0,
-    nextAttemptAt: Date.now(),
+    nextAttemptAt: now,
+    updatedAt: now,
   };
   const db = await openDatabase();
   await new Promise<void>((resolve, reject) => {
@@ -107,11 +115,38 @@ export async function updateAttachmentQueueItem(
   db.close();
 }
 
+export async function recoverStaleAttachmentQueueItems(
+  now = Date.now(),
+  staleAfterMs = ATTACHMENT_UPLOAD_STALE_MS
+): Promise<AttachmentQueueItem[]> {
+  const items = await listAttachmentQueueItems();
+  const recovered: AttachmentQueueItem[] = [];
+  for (const item of items) {
+    if (
+      item.status !== "UPLOADING" ||
+      (item.lockedAt !== undefined && item.lockedAt > now - staleAfterMs)
+    )
+      continue;
+    const next = {
+      ...item,
+      status: "FAILED" as const,
+      nextAttemptAt: now,
+      updatedAt: now,
+      lockedAt: undefined,
+      lastError: "อัปโหลดหยุดชะงัก จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
+    };
+    await updateAttachmentQueueItem(next);
+    recovered.push(next);
+  }
+  return recovered;
+}
+
 export async function drainAttachmentQueue(
   upload: (item: AttachmentQueueItem) => Promise<{ acknowledged: boolean }>,
   now = Date.now(),
   force = false
 ): Promise<AttachmentQueueItem[]> {
+  await recoverStaleAttachmentQueueItems(now);
   const items = await listAttachmentQueueItems();
   const results: AttachmentQueueItem[] = [];
   for (const item of items) {
@@ -124,16 +159,26 @@ export async function drainAttachmentQueue(
       ...item,
       status: "UPLOADING" as const,
       attempts: item.attempts + 1,
+      updatedAt: now,
+      lockedAt: now,
     };
     await updateAttachmentQueueItem(sending);
     try {
       const result = await upload(sending);
       const next = result.acknowledged
-        ? { ...sending, status: "READY" as const, lastError: undefined }
+        ? {
+            ...sending,
+            status: "READY" as const,
+            updatedAt: now,
+            lockedAt: undefined,
+            lastError: undefined,
+          }
         : {
             ...sending,
             status: "FAILED" as const,
             nextAttemptAt: nextAttachmentRetryAt(sending.attempts, now),
+            updatedAt: now,
+            lockedAt: undefined,
             lastError: "Server did not acknowledge attachment",
           };
       await updateAttachmentQueueItem(next);
@@ -143,6 +188,8 @@ export async function drainAttachmentQueue(
         ...sending,
         status: "FAILED" as const,
         nextAttemptAt: nextAttachmentRetryAt(sending.attempts, now),
+        updatedAt: now,
+        lockedAt: undefined,
         lastError:
           error instanceof Error ? error.message : "Attachment upload failed",
       };

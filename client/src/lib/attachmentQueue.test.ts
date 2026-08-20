@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   drainAttachmentQueue,
   enqueueAttachment,
+  recoverStaleAttachmentQueueItems,
   listAttachmentQueueItems,
   updateAttachmentQueueItem,
 } from "./attachmentQueue";
@@ -112,5 +113,35 @@ describe("offline attachment queue", () => {
       status: "READY",
       attempts: 2,
     });
+  });
+
+  it("recovers an interrupted stale UPLOADING row and retries it", async () => {
+    const queued = await enqueueAttachment(item);
+    const now = Date.now();
+    await updateAttachmentQueueItem({
+      ...queued,
+      status: "UPLOADING",
+      attempts: 1,
+      updatedAt: now - 10_000,
+      lockedAt: now - 10_000,
+      lastError: undefined,
+    });
+
+    const recovered = await recoverStaleAttachmentQueueItems(now, 1_000);
+    expect(recovered[0]).toMatchObject({
+      status: "FAILED",
+      nextAttemptAt: now,
+      lastError: "อัปโหลดหยุดชะงัก จะลองส่งใหม่เมื่อเครือข่ายพร้อม",
+    });
+
+    const results = await drainAttachmentQueue(
+      async sending => {
+        expect(sending.status).toBe("UPLOADING");
+        return { acknowledged: true };
+      },
+      now,
+      true
+    );
+    expect(results[0]).toMatchObject({ status: "READY", attempts: 2 });
   });
 });

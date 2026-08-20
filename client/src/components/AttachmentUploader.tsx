@@ -6,6 +6,7 @@ import {
 import {
   drainAttachmentQueue,
   enqueueAttachment,
+  listAttachmentQueueItems,
   type AttachmentQueueItem,
 } from "@/lib/attachmentQueue";
 import {
@@ -118,12 +119,46 @@ export default function AttachmentUploader({
     [caseCode, trackingToken]
   );
 
+  const refreshQueuedItems = useCallback(async () => {
+    const queued = (await listAttachmentQueueItems()).filter(
+      item => item.caseCode === caseCode && item.trackingToken === trackingToken
+    );
+    setItems(current => {
+      const currentById = new Map(current.map(item => [item.id, item]));
+      const hydrated = queued.map(item => ({
+        id: item.clientAttachmentId,
+        file: new File([item.blob], item.fileName, { type: item.mimeType }),
+        state:
+          item.status === "READY"
+            ? ("READY_SERVER" as const)
+            : item.status === "UPLOADING"
+              ? ("UPLOADING" as const)
+              : item.status === "FAILED"
+                ? ("PENDING" as const)
+                : ("PENDING" as const),
+        message:
+          item.lastError ??
+          (item.status === "PENDING" || item.status === "FAILED"
+            ? "บันทึกไว้แล้ว จะลองส่งใหม่เมื่อเครือข่ายพร้อม"
+            : undefined),
+      }));
+      const hydratedIds = new Set(hydrated.map(item => item.id));
+      return [
+        ...current.filter(item => !hydratedIds.has(item.id)),
+        ...hydrated,
+      ].slice(0, ATTACHMENT_POLICY.maxFiles);
+    });
+  }, [caseCode, trackingToken]);
+
   useEffect(() => {
-    const onOnline = () => void drainPending(true);
-    void drainPending();
+    const onOnline = () =>
+      void drainPending(true).then(() => refreshQueuedItems());
+    void refreshQueuedItems().then(() =>
+      drainPending().then(() => refreshQueuedItems())
+    );
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
-  }, [drainPending]);
+  }, [drainPending, refreshQueuedItems]);
 
   const chooseFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(event.target.files ?? []);
