@@ -225,3 +225,5 @@
 - [x] Add `workflow_dispatch` to CI so closure branches can run the same quality gates explicitly when pull_request checks are not provisioned; manual CI run 32325255411 passed
 
 - [ ] Diagnose and fix production Supabase intake transport returning GitHub Pages HTML (`Unexpected token '<'`) during TEST retry instead of JSON acknowledgement; re-run TEST-only browser flow and cleanup
+
+- [x] Fix Intake success `ติดตามเคสนี้` link that still resolves to domain-root `/tracking` on GitHub Pages, then rerun TEST acknowledgement/tracking smoke; source uses `getRoutePath(import.meta.env.BASE_URL, ...)` and local check/lint/test/build passed; live smoke follows deployment
