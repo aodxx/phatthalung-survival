@@ -20,16 +20,24 @@ export type AttachmentQueueItem = {
 
 const DB_NAME = "phatthalung-survival";
 const STORE_NAME = "attachmentQueue";
-const VERSION = 2;
+const VERSION = 3;
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, VERSION);
     request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
-        request.result.createObjectStore(STORE_NAME, {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, {
           keyPath: "clientAttachmentId",
         });
+      }
+      if (!db.objectStoreNames.contains("citizen-request-queue")) {
+        const store = db.createObjectStore("citizen-request-queue", {
+          keyPath: "clientRequestId",
+        });
+        store.createIndex("status", "status", { unique: false });
+        store.createIndex("nextAttemptAt", "nextAttemptAt", { unique: false });
       }
     };
     request.onsuccess = () => resolve(request.result);
