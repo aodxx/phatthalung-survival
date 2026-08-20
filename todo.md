@@ -16,7 +16,7 @@
 - [x] Add README, ARCHITECTURE.md, SECURITY.md, RUNBOOK.md, TEST_PLAN.md, and OWNER_ACTION_REQUIRED.md
 - [x] Add lint, typecheck, unit-test, build, and CI configuration
 - [x] Add Phase 0 tests for PWA assets, environment validation, role definitions, migration invariants, RLS baseline, and audit requirements
-- [ ] Run lint, tests, build, mobile smoke check, error/empty-state check, and security review; verified: lint, tests, build, typecheck, mobile screenshot, Supabase connectivity, migration, table/RLS inventory, anonymous RLS boundary, audit/staff unit tests; verified formal Tracking invalid-credential error state and PWA service-worker controller in `docs/RUNTIME_SMOKE_EVIDENCE.md`; remaining: offline reload simulation, broader mobile smoke, and deploy verification; GitHub Actions CI runs `32294077163` and `32294392690` passed install, typecheck, lint, unit tests, and build
+- [ ] Run complete lint, tests, build, mobile smoke check, error/empty-state check, and security review; automated gates and limited Tracking smoke pass, but broader mobile smoke and full security/owner review remain CONDITIONAL
 
 ## Requested product scope recorded for subsequent phases
 
@@ -54,7 +54,7 @@
 - [x] Add client-side attachment picker, validation, list, upload action, and post-Request upload flow without blocking Request creation
 - [x] Add offline attachment pending queue with bounded file-size handling, online drain, and retry state that never claims upload success before server acknowledgement
 - [x] Add controlled upload API/storage boundary with server-side validation, audit event, and Request token access check
-- [ ] Add attachment security, offline, validation, and API contract tests; verified: validation, fail-closed API, binary offline queue, HTTP 400/503 route contract, isolated READY idempotency fixture, 16 Vitest files / 68 passing tests plus 2 opt-in Supabase integration tests (skipped by default; both passed when enabled), typecheck, lint, production build, and mobile page screenshots; remaining: live storage upload, malware scanning, rate limiting, and full attachment-state runtime verification
+- [ ] Add attachment security, offline, validation, and API contract tests; contract/storage evidence passes, but malware scanning, rate limiting, retention policy, and full browser attachment-state runtime remain OWNER ACTION/CONDITIONAL
 - [x] Update `OWNER_ACTION_REQUIRED.md` with storage bucket, retention, malware scanning, and production upload configuration decisions
 - [x] Fix public attachment route error classification so missing headers, invalid client ID, unsupported MIME, oversized file, authorization failure, and count limit return correct 4xx responses
 - [x] Add attachment API error contract tests for validation/status mapping, authorization failure boundary, idempotency error mapping, and public error response shape
@@ -66,10 +66,10 @@
 - [x] Verify end-to-end attachment upload against a real acknowledged Request/Case ID + tracking token, including storage write and READY transition
 - [x] Add isolated idempotent READY re-upload fixture proving no duplicate record or second storage upload
 - [x] Complete or explicitly decouple citizen attachment access from public tracking rollout and re-test the user flow: tracking metadata/download boundary exists, but valid Case ID/token runtime flow remains pending
-- [ ] Capture runtime UI verification for attachment selection, pending/offline, retry, success, and failure states when preview is available
+- [ ] Capture full runtime UI verification for attachment selection, pending/offline, retry, success, and failure states in one browser session; available contract evidence is recorded, but browser file-picker/reconnect lifecycle remains CONDITIONAL
 - [x] Add a public-safe attachment metadata/download path after tracking lookup; return only READY metadata, never expose storage paths in tracking data, and require Case ID + tracking token for signed URL access
 - [x] Add unit/HTTP contract tests for authorized attachment listing/download and denied access without valid Case ID + token using injected fake Supabase/storage boundaries; no production/test data inserted
-- [ ] Add runtime UI verification for attachment selection, offline pending, retry, success, failure, and public download states using a real acknowledged Request/Case ID + tracking token where owner environment permits
+- [ ] Add full runtime UI verification for attachment selection, offline pending, retry, success, failure, and public download states using a valid acknowledged TEST Case ID/token in one session; API/storage evidence passes but browser lifecycle remains owner-gated
 - [x] Begin Phase 2 staff intake and operations queue design from Blueprint/PRD after citizen attachment access is closed; design boundary recorded in `docs/PHASE2_OPERATIONS_QUEUE_DESIGN.md`
 
 ## Fixing Agent — Phase 0/1 blocking issues from owner instruction
@@ -92,7 +92,7 @@
 - [x] Add reporter relation input to the citizen form and include FIRE/ACCIDENT need options; queue/RPC payload includes selected relation and stable code
 - [x] Wire Supabase Auth + user_profiles role_code/zone_id into server context and staff authorization with dev/production adapter documentation in `docs/STAFF_AUTH_PRODUCTION.md`
 - [x] Run real Supabase RLS zone tests against the database, including same/other zone, wrong role, admin, and assigned/unassigned FIELD; exact TEST fixtures cleaned and zero-row/Auth verification passed
-- [ ] Phase 0 exit verification: run install, check, lint, test, build, CI evidence, migrations, RLS, mobile smoke, error/empty states, PWA shell, and deployment preview; remaining full preview matrix and owner sign-off are documented in `docs/PHASE_0_1_FINAL_VERIFICATION.md`
+- [ ] Phase 0 exit verification: install/check/lint/test/build, CI evidence, migrations, RLS, PWA shell, Pages deployment and direct Tracking smoke pass; full mobile/browser matrix and owner sign-off remain open
 - [x] Keep Phase 2+ features stopped until this fixing pass and Phase 0/1 critical foundation are verified
 - [x] Add tracking test deriving REVIEWING from incident lifecycle and ASSIGNED from mission lifecycle, not only verification fallback
 - [x] Add incident-status fallback test proving tracking uses incident lifecycle when no mission exists
@@ -235,3 +235,10 @@
 - [x] Add status and zone filter controls to `/operations` and move queue ordering/pagination into authoritative `phase2_operations_queue` Supabase RPC; no Node-side 500-row fetch remains
 - [x] Enforce persisted request/incident/mission current-status transition guards inside Supabase RPCs; adapters no longer accept previousStatus from client and contract tests pass
 - [x] Implement duplicate-candidate triage decision RPC/router with CONFIRMED/REJECTED/IGNORED decisions, required reason, role boundary, and audit metadata; 9 Phase 2 contract tests pass
+
+
+## Evidence gaps reopened
+
+- [ ] Complete real browser attachment UI verification in one valid TEST Case ID/token session, or retain as conditional if file-picker/network controls are unavailable
+- [ ] Complete broader mobile/deployment smoke beyond Tracking-only proof for the Phase 0 exit gate
+- [ ] Separate attachment security owner actions (malware scanning, rate limiting, retention) from completed contract coverage and obtain owner approval
